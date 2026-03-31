@@ -1,12 +1,16 @@
-import { Markup } from 'telegraf';
+import { Keyboard } from "vk-io";
 
-export const searchingGroupList = (groups: { label: string; id: number }[]) =>
-  Markup.inlineKeyboard(
-    [
-      ...groups.map((group) =>
-        Markup.button.callback(group.label, `group-search-${group.id}`),
-      ),
-      Markup.button.callback('Отмена', 'cancel'),
-    ],
-    { columns: 2 },
-  );
+export const searchingGroupList = (groups: { label: string; id: number }[]) => {
+  const bulider = Keyboard.builder().inline()
+
+  groups.map(group => {
+    bulider.textButton({
+      label: group.label,
+      payload: {
+        group_id: group.id
+      }
+    }).row()
+  })
+
+  return bulider
+}

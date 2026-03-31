@@ -6,7 +6,7 @@ import { UsersCountByGroupsQuery } from './users.interface';
 @UseGuards(AuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get('count')
   async getCountByGroups(@Query() query: UsersCountByGroupsQuery) {

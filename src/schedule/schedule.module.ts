@@ -8,4 +8,4 @@ import { ApiModule } from '../api/api.module';
   imports: [UsersModule, ApiModule],
   providers: [ScheduleService, ScheduleUpdate],
 })
-export class ScheduleModule {}
+export class ScheduleModule { }

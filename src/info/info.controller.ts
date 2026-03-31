@@ -5,7 +5,7 @@ import { AuthGuard } from '../auth/auth.guard';
 @UseGuards(AuthGuard)
 @Controller('info')
 export class InfoController {
-  constructor(private readonly infoService: InfoService) {}
+  constructor(private readonly infoService: InfoService) { }
 
   @Get('users/count')
   async getUsersCount(

@@ -15,7 +15,7 @@ import { AuthGuard } from '../auth/auth.guard';
 @UseGuards(AuthGuard)
 @Controller('faq')
 export class FaqController {
-  constructor(private faqService: FaqService) {}
+  constructor(private faqService: FaqService) { }
 
   @Get()
   getFaq(

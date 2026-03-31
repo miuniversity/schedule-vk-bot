@@ -8,4 +8,4 @@ import { LecturerService } from './lecturer.service';
   imports: [ApiModule],
   providers: [LecturerWizard, LecturerUpdate, LecturerService],
 })
-export class LecturerModule {}
+export class LecturerModule { }

@@ -10,7 +10,7 @@ import { getWeekNumber } from '../utils/getWeekNumber';
 export class LecturerService {
   private logger = new Logger(LecturerService.name);
 
-  constructor(private readonly apiService: ApiService) {}
+  constructor(private readonly apiService: ApiService) { }
 
   async getLecturerSchedule(
     lecturer_id: number,
@@ -49,7 +49,7 @@ export class LecturerService {
     const _preparedData = this.getPreparedData(data);
 
     return [
-      `<b>${this.getLecturers(data).join(', ')}</b>`,
+      this.getLecturers(data).join(', '),
       _preparedData
         .map((i) =>
           [
@@ -73,26 +73,23 @@ export class LecturerService {
     return lessons
       .map(
         (cur) =>
-          `${cur.lessonNumberStart} | ${cur.beginLesson} - ${
-            cur.endLesson
-          } | <i>${hide_buildings ? '' : this.getShortBuilding(cur.building)}${cur.auditorium}</i>\n<b>${
-            cur.discipline
-          }</b> (${cur.kindOfWork.substring(0, 3)}.)`,
+          `${cur.lessonNumberStart} | ${cur.beginLesson} - ${cur.endLesson
+          } | ${hide_buildings ? '' : this.getShortBuilding(cur.building)}${cur.auditorium}\n${cur.discipline
+          } (${cur.kindOfWork.substring(0, 3)}.)`,
       )
       .filter((i, p, a) => a.indexOf(i) == p)
       .join('\n');
   }
 
   private getFormattedDate(date: Date, count = 0) {
-    return `<i>${getDayOfWeek(date)} (${date.toLocaleDateString('RU-ru')})${
-      count > 0
-        ? ` - ${count} ${declOfNum(count, ['пара', 'пары', 'пар'])}`
-        : ''
-    }</i>`;
+    return `${getDayOfWeek(date)} (${date.toLocaleDateString('RU-ru')})${count > 0
+      ? ` - ${count} ${declOfNum(count, ['пара', 'пары', 'пар'])}`
+      : ''
+      }`;
   }
 
   private getWeekParity(date: Date) {
-    return `<i>${getWeekNumber(date) % 2 ? 'Чётная' : 'Нечётная'} неделя</i>`;
+    return `${getWeekNumber(date) % 2 ? 'Чётная' : 'Нечётная'} неделя`;
   }
 
   private getPreparedData(data: LessonDto[]) {

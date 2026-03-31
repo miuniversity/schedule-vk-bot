@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import * as winston from 'winston';
 import { WinstonModule } from 'nest-winston';
-import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const { timestamp, combine, printf, errors } = winston.format;
@@ -19,8 +19,7 @@ async function bootstrap() {
             errors(),
             printf(
               (info) =>
-                `${info.timestamp} ${info.level}:${
-                  'context' in info && info.context ? ` [${info.context}]` : ''
+                `${info.timestamp} ${info.level}:${'context' in info && info.context ? ` [${info.context}]` : ''
                 } ${info.message}`,
             ),
           ),
@@ -34,8 +33,7 @@ async function bootstrap() {
             errors({ stack: true }),
             printf(
               (info) =>
-                `${info.timestamp} ${info.level}:${
-                  'context' in info && info.context ? ` [${info.context}]` : ''
+                `${info.timestamp} ${info.level}:${'context' in info && info.context ? ` [${info.context}]` : ''
                 } ${'stack' in info && info.stack ? info.stack : info.message}`,
             ),
           ),

@@ -1,69 +1,47 @@
-import { Action, Ctx, Hears, Update } from 'nestjs-telegraf';
-import { Logger } from '@nestjs/common';
-import { Context } from 'telegraf';
-import { editMessage } from '../utils/editMessage';
+import { ConfigService } from '@nestjs/config';
+
+import { Ctx, Hears, InjectVkApi, Update } from 'nestjs-vk';
+import { MessageContext, VK } from 'vk-io';
+
 import { MESSAGES } from '../app.constants';
 import { floorMapsMenuButtons } from './floor-maps.buttons';
-import { ConfigService } from '@nestjs/config';
 
 @Update()
 export class FloorMapsUpdate {
-  private logger = new Logger(FloorMapsUpdate.name);
+  constructor(@InjectVkApi() readonly vk: VK, private readonly configService: ConfigService) { }
 
-  constructor(private readonly configService: ConfigService) {}
-
-  @Hears(/^карта$/i)
-  @Action('floor-maps')
-  async getFloorMapsMenu(@Ctx() ctx: Context) {
-    if (ctx.callbackQuery && 'data' in ctx.callbackQuery) {
-      await editMessage(ctx, MESSAGES['ru'].FLOOR_MENU, {
-        reply_markup: floorMapsMenuButtons().reply_markup,
-      });
-    } else {
-      await ctx
-        .reply(MESSAGES['ru'].FLOOR_MENU, {
-          reply_markup: floorMapsMenuButtons().reply_markup,
-        })
-        .catch((err) => this.logger.error(JSON.stringify(err, undefined, 2)));
-    }
+  @Hears([/^карта/i])
+  async getFloorMapsMenu(@Ctx() ctx: MessageContext) {
+    await ctx.send({
+      message: MESSAGES['ru'].FLOOR_MENU,
+      keyboard: floorMapsMenuButtons
+    })
   }
 
-  @Hears(/^(\d\s+)?этаж(\s+\d)?$/i)
-  @Action(/^floor-[0-9]$/i)
-  async getFloorMap(@Ctx() ctx: Context) {
-    if (ctx.callbackQuery && 'data' in ctx.callbackQuery) {
-      await ctx.replyWithPhoto(
-        {
-          url: `${this.configService.get('STATIC_BASE_URL')}/file/${ctx.callbackQuery.data}.jpg`,
-        },
-        { reply_markup: floorMapsMenuButtons().reply_markup },
-      );
-    } else if ('text' in ctx.message) {
-      const floor = ctx.message.text.match(/\d/);
+  @Hears([/^(\d\s+)?этаж(\s+\d)?$/i])
+  async getFloorMap(@Ctx() ctx: MessageContext) {
+    const floor = ctx.text.match(/\d/);
 
-      if (!floor) {
-        return;
-      }
-
-      await ctx.replyWithPhoto(
-        {
-          url: `${this.configService.get('STATIC_BASE_URL')}/file/floor-${floor[0]}.jpg`,
-        },
-        { reply_markup: floorMapsMenuButtons().reply_markup },
-      );
+    if (!floor || floor.length < 1) {
+      return;
     }
+    await ctx.setActivity();
+
+    await ctx.sendPhotos({
+      value: `${this.configService.get('STATIC_BASE_URL')}/file/floor-${floor[0]}.jpg`,
+      contentType: 'image/jpeg',
+    });
   }
 
-  @Hears(/^все этажи$/i)
-  async getAllFloorMaps(@Ctx() ctx: Context) {
-    await ctx.replyWithMediaGroup(
+  @Hears([/^все этажи$/i])
+  async getAllFloorMaps(@Ctx() ctx: MessageContext) {
+    await ctx.setActivity();
+
+    await ctx.sendPhotos(
       new Array(6).fill(null).map((_, index) => ({
-        type: 'photo',
-        caption: `${index + 1} этаж`,
-        media: {
-          url: `${this.configService.get('STATIC_BASE_URL')}/file/floor-${index + 1}.jpg`,
-        },
-      })),
+        value: `${this.configService.get('STATIC_BASE_URL')}/file/floor-${index + 1}.jpg`,
+        contentType: 'image/jpeg',
+      }))
     );
   }
 }

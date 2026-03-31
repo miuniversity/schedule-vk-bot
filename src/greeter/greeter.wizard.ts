@@ -1,114 +1,110 @@
-import {
-  Action,
-  Command,
-  Ctx,
-  Message,
-  On,
-  Wizard,
-  WizardStep,
-} from 'nestjs-telegraf';
-import { MESSAGES, SELECT_GROUP_WIZARD } from '../app.constants';
-import { WizardContext } from 'telegraf/typings/scenes';
-import { editMessage } from '../utils/editMessage';
-import { UsersService } from '../users/users.service';
-import { searchingGroupList } from './greeter.buttons';
-import { ApiService } from '../api/api.service';
-import { UserEntity } from '../users/user.entity';
+import { MessageContext, MessageEventContext } from 'vk-io';
+import { AddStep, Ctx, On, Scene, SceneEnter } from 'nestjs-vk';
+import { IStepContext } from '@vk-io/scenes';
 
-@Wizard(SELECT_GROUP_WIZARD)
+import { MESSAGES, SELECT_GROUP_WIZARD } from '../app.constants';
+import { SearchResponseData } from '../api/api.interface';
+import { ApiService } from 'src/api/api.service';
+import { searchingGroupList } from './greeter.buttons';
+import { UsersService } from 'src/users/users.service';
+import { UserEntity } from 'src/users/user.entity';
+
+type GreetingState = {
+  groups: SearchResponseData[];
+  status: 'idle' | 'search';
+}
+
+@Scene(SELECT_GROUP_WIZARD)
 export class GreeterWizard {
   constructor(
-    private readonly usersService: UsersService,
-    private readonly apiService: ApiService,
-  ) {}
+    readonly apiService: ApiService,
+    readonly usersService: UsersService,
+  ) { }
 
-  @WizardStep(1)
-  async onStart(@Ctx() ctx: WizardContext) {
-    ctx.wizard.next();
-    return MESSAGES['ru'].ENTER_GROUP;
+  @SceneEnter()
+  async onStart(@Ctx() ctx: MessageContext & IStepContext<GreetingState>) {
+    ctx.scene.state.groups ??= [];
+    ctx.scene.state.status ??= 'idle';
   }
 
-  @On('text')
-  @WizardStep(2)
-  async onMessage(@Ctx() ctx: WizardContext, @Message() msg: { text: string }) {
-    const message = await ctx.reply(MESSAGES['ru'].SEARCHING);
-    const groups = await this.apiService.search({
-      payload: { term: msg.text, type: 'group' },
-    });
-
-    if (groups instanceof Error) {
-      await editMessage(ctx, MESSAGES['ru'].ERROR_RETRY, {}, message);
+  @AddStep(1)
+  async step1(@Ctx() ctx: MessageContext & IStepContext<GreetingState>) {
+    if (ctx.scene.step.firstTime) {
+      await ctx.send(MESSAGES['ru'].ENTER_GROUP);
       return;
     }
 
-    if (!groups.length) {
-      await editMessage(ctx, MESSAGES['ru'].NO_GROUPS_FOUND, {}, message);
-      return;
-    }
+    const searchString = ctx.text;
 
-    if (groups.length > 8) {
-      await editMessage(ctx, MESSAGES['ru'].MANY_GROUPS_FOUND, {}, message);
-      return;
-    }
+    if (searchString && ctx.scene.state.status !== 'search') {
+      const msg = await ctx.send(MESSAGES['ru'].SEARCHING);
+      await ctx.setActivity()
 
-    (ctx.wizard.state as any).groups = groups;
-    ctx.wizard.next();
-    await editMessage(
-      ctx,
-      MESSAGES['ru'].SELECT_GROUP,
-      {
-        reply_markup: searchingGroupList(groups).reply_markup,
-      },
-      message,
-    );
+      ctx.scene.state.status = 'search';
+      const groups = await this.apiService.search({
+        payload: { term: searchString, type: 'group' },
+      }).finally(() => ctx.scene.state.status = 'idle');
+
+      if (groups instanceof Error) {
+        await msg.editMessage({
+          message: MESSAGES['ru'].ERROR_RETRY,
+        });
+        return;
+      }
+
+      if (!groups.length) {
+        await msg.editMessage({
+          message: MESSAGES['ru'].NO_GROUPS_FOUND,
+        });
+        return;
+      }
+
+      if (groups.length > 5) {
+        await msg.editMessage({
+          message: MESSAGES['ru'].MANY_GROUPS_FOUND,
+        });
+        return;
+      }
+
+      ctx.scene.state.groups = groups;
+      await msg.editMessage({
+        message: MESSAGES['ru'].SELECT_GROUP,
+        keyboard: searchingGroupList(groups),
+      });
+      return ctx.scene.step.next({ silent: true });
+    }
   }
 
-  @Action('cancel')
-  @Command('cancel')
-  @WizardStep(3)
-  async chancelSelectGroup(@Ctx() ctx: WizardContext) {
-    ctx.wizard.back();
-    await editMessage(ctx, MESSAGES['ru'].ENTER_GROUP);
-  }
+  @AddStep(2)
+  async step2(@Ctx() ctx: MessageEventContext & IStepContext<GreetingState>) {
+    if (ctx.scene.step.firstTime && ctx.messagePayload) {
+      const group_id = ctx.messagePayload.group_id;
 
-  @Action(/group-search-/i)
-  @WizardStep(3)
-  async onGroupSelect(@Ctx() ctx: WizardContext) {
-    const user = ctx.callbackQuery.from;
-    const group_id = (ctx.callbackQuery as { data: string }).data.replace(
-      'group-search-',
-      '',
-    );
+      const selected_group = ctx.scene.state.groups.find(
+        (g: any) => String(g.id) === String(group_id),
+      );
 
-    const selected_group = (ctx.wizard.state as { groups: any[] }).groups.find(
-      (l: any) => String(l.id) === String(group_id),
-    );
+      const user_from_db = await this.usersService.getInfo(ctx.peerId);
+      const payload: Omit<UserEntity, 'id' | 'updated_at' | 'created_at'> = {
+        uid: String(ctx.peerId),
+        group_id: parseInt(group_id),
+        group_name: selected_group.label,
+        // first_name: user.first_name,
+        // last_name: user.last_name,
+        // username: user.username,
+        register_source: 'directly',
+      };
 
-    const user_from_db = await this.usersService.getInfo(user.id);
-    const payload: Omit<UserEntity, 'id' | 'updated_at' | 'created_at'> = {
-      uid: String(user.id),
-      group_id: parseInt(group_id),
-      group_name: selected_group.label,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      username: user.username,
-      register_source: 'directly',
-    };
+      if (user_from_db) {
+        payload.register_source = user_from_db?.register_source;
+        await this.usersService.editInfo(ctx.peerId, payload);
+      } else {
+        await this.usersService.register(payload);
+      }
 
-    if (user_from_db) {
-      payload.register_source = user_from_db?.register_source;
-      await this.usersService.editInfo(user.id, payload);
-    } else {
-      await this.usersService.register(payload);
+      await ctx.send(MESSAGES['ru'].GROUP_SELECTED(selected_group.label));
+      return ctx.scene.leave();
     }
-
-    await ctx.scene.leave();
-    await editMessage(
-      ctx,
-      MESSAGES['ru'].GROUP_SELECTED(selected_group.label),
-      {
-        parse_mode: 'HTML',
-      },
-    );
+    return ctx.scene.step.go(0);
   }
 }

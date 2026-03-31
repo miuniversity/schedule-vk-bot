@@ -1,40 +1,34 @@
-import { Context } from 'telegraf';
-import { ExtraEditMessageText } from 'telegraf/src/telegram-types';
 import { Logger } from '@nestjs/common';
-
-function checkMessage(message: { message_id: number }) {
-  if (!message) {
-    throw new Error('No message provided');
-  }
-}
+import { MessageContext, VK } from 'vk-io';
+import { MessagesEditParams } from 'vk-io/lib/api/schemas/params';
 
 export async function editMessage(
-  ctx: Context,
-  text: string,
-  options?: ExtraEditMessageText,
-  message?: { message_id: number },
+  vk: VK,
+  ctx: MessageContext,
+  text: MessageContext['message']['text'],
+  options?: Omit<MessagesEditParams, 'peer_id' | 'message_id' | 'message'>,
 ) {
   const logger = new Logger('editMessage');
 
   try {
-    if (ctx && !ctx.callbackQuery) {
-      checkMessage(message);
-      return await ctx.telegram.editMessageText(
-        ctx.chat.id,
-        message.message_id,
-        undefined,
-        text,
-        options,
-      );
-    }
+    // if (ctx && !ctx) {
+    //   checkMessage(message);
+    //   await ctx.editMessage();
+    //   return await ctx.telegram.editMessageText(
+    //     ctx.chat.id,
+    //     message.message_id,
+    //     undefined,
+    //     text,
+    //     options,
+    //   );
+    // }
 
-    return await ctx.telegram.editMessageText(
-      ctx.chat.id,
-      ctx.callbackQuery.message.message_id,
-      undefined,
-      text,
-      options,
-    );
+    return await vk.api.messages.edit({
+      peer_id: ctx.peerId,
+      message_id: ctx.id,
+      message: text,
+      ...options,
+    });
   } catch (err: any) {
     if (err.hasOwnProperty('error_code')) {
       if (err.error_code === 400) {

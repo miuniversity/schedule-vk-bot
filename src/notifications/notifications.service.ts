@@ -1,7 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { InjectBot } from 'nestjs-telegraf';
-import { Telegraf } from 'telegraf';
 import { CanceledError } from 'axios';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error
@@ -9,6 +7,8 @@ import * as telegramifyMarkdown from 'telegramify-markdown';
 import { WebhookService } from '../webhook/webhook.service';
 import { HttpService } from '@nestjs/axios';
 import { AppEvent } from '../webhook/entities/webhook.entity';
+import { InjectVkApi } from 'nestjs-vk';
+import { VK } from 'vk-io';
 
 @Injectable()
 export class NotificationsService {
@@ -37,7 +37,7 @@ export class NotificationsService {
   private logger = new Logger(NotificationsService.name);
 
   constructor(
-    @InjectBot() private readonly bot: Telegraf,
+    @InjectVkApi() private readonly vk: VK,
     private readonly usersService: UsersService,
     private readonly webhookService: WebhookService,
     private readonly httpService: HttpService,
@@ -253,13 +253,13 @@ export class NotificationsService {
   ) {
     const rejected: (
       | {
-          response: {
-            ok: boolean;
-            error_code: number;
-            description: string;
-          };
-          chat_id: string;
-        }
+        response: {
+          ok: boolean;
+          error_code: number;
+          description: string;
+        };
+        chat_id: string;
+      }
       | any
     )[] = [];
     const requestsPerCycle = options?.requestsPerCycle ?? this.requestsPerCycle;
@@ -277,11 +277,10 @@ export class NotificationsService {
 
       await Promise.allSettled(
         preparedList.map((item) =>
-          this.bot.telegram.sendMessage(item, text, {
-            parse_mode: 'MarkdownV2',
-            link_preview_options: {
-              is_disabled: !options.doLinkPreview,
-            },
+          this.vk.api.messages.send({
+            peer_id: item,
+            message: text,
+            dont_parse_links: !options.doLinkPreview,
           }),
         ),
       ).then((results) =>

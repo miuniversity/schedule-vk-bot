@@ -1,24 +1,40 @@
-import { Markup } from 'telegraf';
+import { Keyboard } from "vk-io";
 
-export const theMenu = ({ link, faq }: { link: string; faq: boolean }) =>
-  Markup.inlineKeyboard([
-    [
-      Markup.button.callback('На день', `day-current`),
-      Markup.button.callback('На неделю', `week-current`),
-    ],
-    [Markup.button.callback('Преподаватель', 'lecturer')],
-    [Markup.button.callback('Карта ГК', 'floor-maps')],
-    [
-      Markup.button.url('ЛК', `https://elearn.mmu.ru`),
-      Markup.button.switchToChat(
-        `Поделиться`,
-        `\n\nЯ пользуюсь ботом с расписанием занятий ММУ и хочу поделиться им с вами! Переходите по ссылке ниже и вы сразу сможете получать расписание нашей группы:\n${link}`,
-      ),
-    ],
-    // [Markup.button.callback('FAQ', 'faq', !faq)],
-    [
-      Markup.button.callback('Настройки', `settings`),
-      Markup.button.callback('FAQ', 'faq', !faq),
-      /*Markup.button.url('Автор', 'https://danyatochka.ru'),*/
-    ],
-  ]);
+export const mainMenu = Keyboard.builder().inline()
+  .textButton({
+    label: 'На день',
+    payload: {
+      day: 'current',
+    },
+    color: Keyboard.PRIMARY_COLOR,
+  })
+  .textButton({
+    label: 'На неделю',
+    payload: {
+      week: 'current',
+    },
+    color: Keyboard.PRIMARY_COLOR,
+  })
+  .row()
+  .textButton({
+    label: 'Преподаватель',
+    color: Keyboard.SECONDARY_COLOR,
+  })
+  .row()
+  .textButton({
+    label: 'Карта ГК',
+  })
+  .row()
+  .urlButton({
+    label: 'ЛК',
+    url: 'https://elearn.mmu.ru',
+  })
+  .textButton({
+    label: 'FAQ',
+  })
+  .row()
+  .textButton({
+    label: 'Настройки',
+  })
+  .row()
+

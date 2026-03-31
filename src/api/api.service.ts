@@ -7,16 +7,16 @@ import { formatDate } from '../utils/formatDate';
 export class ApiService {
   private logger = new Logger(ApiService.name);
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly httpService: HttpService) { }
 
   async search(data: Api['Search']) {
     try {
       const res = await this.httpService.axiosRef.get<SearchResponseData[]>(
-        `search?term=${encodeURIComponent(data.payload.term)}&type=${
-          data.payload.type
+        `search?term=${encodeURIComponent(data.payload.term)}&type=${data.payload.type
         }`,
       );
-      return res.data;
+
+      return res.data.filter((i, index) => res.data.findIndex(j => j.id === i.id) === index);
     } catch (err) {
       this.logger.error(err ?? 'Unknown error');
       this.logger.error(JSON.stringify(data, undefined, 2));

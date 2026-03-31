@@ -1,14 +1,8 @@
-import {
-  Action,
-  Command,
-  Ctx,
-  Message,
-  On,
-  Wizard,
-  WizardStep,
-} from 'nestjs-telegraf';
+import { AddStep, Ctx, Scene, SceneEnter } from 'nestjs-vk';
+import { MessageContext } from 'vk-io';
+import { IStepContext } from '@vk-io/scenes';
+
 import { MESSAGES, SELECT_LECTURER_WIZARD } from '../app.constants';
-import { WizardContext } from 'telegraf/typings/scenes';
 import { editMessage } from '../utils/editMessage';
 import { ApiService } from '../api/api.service';
 import {
@@ -18,129 +12,102 @@ import {
 } from './lecturer.buttons';
 import { LecturerService } from './lecturer.service';
 
-@Wizard(SELECT_LECTURER_WIZARD)
+type LecturerState = {
+  lecturers: { label: string; id: number; description: string }[];
+  status: 'idle' | 'search';
+}
+
+@Scene(SELECT_LECTURER_WIZARD)
 export class LecturerWizard {
   constructor(
     private readonly lecturerService: LecturerService,
     private readonly apiService: ApiService,
-  ) {}
+  ) { }
 
-  @WizardStep(1)
-  async onStart(@Ctx() ctx: WizardContext) {
-    ctx.wizard.next();
-    await ctx.reply(MESSAGES['ru'].ENTER_LECTURER, {
-      reply_markup: searchingLecturerList([]).reply_markup,
-    });
-  }
-
-  @Action('cancel')
-  @Command('cancel')
-  @WizardStep(2)
-  async backToMenu(@Ctx() ctx: WizardContext) {
-    await ctx.scene.leave();
-    await editMessage(ctx, MESSAGES['ru'].CANCEL_SEARCH);
-  }
-
-  @On('text')
-  @WizardStep(2)
-  async onMessage(@Ctx() ctx: WizardContext, @Message() msg: { text: string }) {
-    const message = await ctx.reply(MESSAGES['ru'].SEARCHING);
-    const lecturers = await this.apiService.search({
-      payload: { term: msg.text, type: 'lecturer' },
-    });
-
-    if (lecturers instanceof Error) {
-      await editMessage(
-        ctx,
-        MESSAGES['ru'].ERROR_RETRY,
-        {
-          reply_markup: searchingLecturerList([]).reply_markup,
-        },
-        message,
-      );
-      return;
+  @SceneEnter()
+  async onStart(@Ctx() ctx: MessageContext & IStepContext<LecturerState>) {
+    if (ctx.text.toLocaleLowerCase() === 'отмена') {
+      await ctx.send(MESSAGES['ru'].CANCEL_SEARCH);
+      return await ctx.scene.leave({
+        canceled: true
+      });
     }
 
-    if (!lecturers.length) {
-      await editMessage(
-        ctx,
-        MESSAGES['ru'].NO_LECTURER_FOUND,
-        {
-          reply_markup: searchingLecturerList([]).reply_markup,
-        },
-        message,
-      );
-      return;
-    }
-
-    if (lecturers.length > 8) {
-      await editMessage(
-        ctx,
-        MESSAGES['ru'].MANY_LECTURERS_FOUND,
-        {
-          reply_markup: searchingLecturerList([]).reply_markup,
-        },
-        message,
-      );
-      return;
-    }
-
-    (ctx.wizard.state as any).lecturers = lecturers;
-    ctx.wizard.next();
-    await editMessage(
-      ctx,
-      MESSAGES['ru'].SELECT_LECTURER,
-      {
-        reply_markup: searchingLecturerList(lecturers).reply_markup,
-      },
-      message,
-    );
+    ctx.scene.state.lecturers ??= [];
+    ctx.scene.state.status ??= 'idle';
   }
 
-  @Action('cancel')
-  @Command('cancel')
-  @WizardStep(3)
-  async chancelSelectLecturer(@Ctx() ctx: WizardContext) {
-    ctx.wizard.back();
-    await editMessage(ctx, MESSAGES['ru'].ENTER_LECTURER, {
-      reply_markup: searchingLecturerList([]).reply_markup,
+  @AddStep(1)
+  async onMessage(@Ctx() ctx: MessageContext & IStepContext<LecturerState>) {
+    if (ctx.scene.step.firstTime) {
+      await ctx.send(MESSAGES['ru'].ENTER_LECTURER);
+      return;
+    }
+    const searchString = ctx.text;
+
+    if (searchString && ctx.scene.state.status !== 'search') {
+      const message = await ctx.send(MESSAGES['ru'].SEARCHING);
+
+      const lecturers = await this.apiService.search({
+        payload: { term: searchString, type: 'lecturer' },
+      });
+
+      if (lecturers instanceof Error) {
+        await message.editMessage({
+          message: MESSAGES['ru'].ERROR_RETRY,
+          keyboard: searchingLecturerList([])
+        });
+        return;
+      }
+
+      if (!lecturers.length) {
+        await message.editMessage({
+          message: MESSAGES['ru'].NO_LECTURER_FOUND,
+          keyboard: searchingLecturerList([]),
+        });
+        return;
+      }
+
+      if (lecturers.length > 5) {
+        await message.editMessage({
+          message: MESSAGES['ru'].MANY_LECTURERS_FOUND,
+          keyboard: searchingLecturerList([]),
+        });
+        return;
+      }
+
+      ctx.scene.state.lecturers = lecturers;
+      await message.editMessage({
+        message: MESSAGES['ru'].SELECT_LECTURER,
+        keyboard: searchingLecturerList(lecturers),
+      });
+      return await ctx.scene.step.next({ silent: true });
+    }
+  }
+
+  @AddStep(2)
+  async onLecturerSelect(@Ctx() ctx: MessageContext & IStepContext<LecturerState>) {
+    await ctx.setActivity();
+
+    const lecturer_id = ctx.messagePayload?.lecturer_id;
+
+    const selected_lecturer = ctx.scene.state.lecturers.find((l) => String(l.id) === String(lecturer_id));
+
+    await ctx.send({
+      message: MESSAGES['ru'].LECTURER_SELECTED(selected_lecturer.label),
+      keyboard: requestLecturerSchedule(parseInt(lecturer_id), new Date()),
     });
-  }
-
-  @Action(/lecturer-search-/i)
-  @WizardStep(3)
-  async onLecturerSelect(@Ctx() ctx: WizardContext) {
-    const lecturer_id = (ctx.callbackQuery as { data: string }).data.replace(
-      'lecturer-search-',
-      '',
-    );
-
-    const selected_lecturer = (
-      ctx.wizard.state as { lecturers: any[] }
-    ).lecturers.find((l: any) => String(l.id) === String(lecturer_id));
-
-    await ctx.scene.leave();
-    await editMessage(
-      ctx,
-      MESSAGES['ru'].LECTURER_SELECTED(selected_lecturer.label),
-      {
-        reply_markup: requestLecturerSchedule(parseInt(lecturer_id), new Date())
-          .reply_markup,
-        parse_mode: 'HTML',
-      },
-    );
 
     const lessons = await this.lecturerService.getLecturerSchedule(
       parseInt(lecturer_id),
       new Date(),
     );
 
-    await ctx.replyWithHTML(
-      this.lecturerService.prepareTextMessageForLecturer(lessons),
-      {
-        reply_markup: lecturerController(parseInt(lecturer_id), new Date())
-          .reply_markup,
-      },
-    );
+    await ctx.send({
+      message: this.lecturerService.prepareTextMessageForLecturer(lessons),
+      keyboard: lecturerController(parseInt(lecturer_id), new Date()),
+    });
+
+    return await ctx.scene.leave();
   }
 }

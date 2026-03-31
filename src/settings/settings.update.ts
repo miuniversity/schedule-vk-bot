@@ -1,125 +1,87 @@
-import { Action, Ctx, Update } from 'nestjs-telegraf';
-import { Context } from 'telegraf';
-import { editMessage } from '../utils/editMessage';
+import { Ctx, Hears, Update } from 'nestjs-vk';
+import { MessageContext } from 'vk-io';
+
 import { settingsController } from './settings.buttons';
 import { UsersService } from '../users/users.service';
-import {
-  MESSAGES,
-  SELECT_GROUP_WIZARD,
-  TRANSLIT_ALPHABET,
-} from '../app.constants';
-import { Logger } from '@nestjs/common';
-import Transliterator from '../utils/transliterator';
+import { MESSAGES, SELECT_GROUP_WIZARD } from '../app.constants';
 
 @Update()
-// @UseInterceptors(new LoggingInterceptor())
 export class SettingsUpdate {
-  private logger = new Logger(SettingsUpdate.name);
-  private transliterator = new Transliterator(TRANSLIT_ALPHABET);
+  constructor(private readonly usersService: UsersService) { }
+  @Hears([/настройки/i])
+  async onSettings(@Ctx() ctx: MessageContext) {
+    await ctx.setActivity();
 
-  constructor(private readonly usersService: UsersService) {}
-  @Action('settings')
-  async onSettings(@Ctx() ctx: Context) {
-    const user = await this.usersService.getInfo(ctx.from.id);
+    const user = await this.usersService.getInfo(ctx.peerId);
 
     if (!user) {
-      await editMessage(ctx, MESSAGES['ru'].NOT_REGISTERED_FOR_SETTINGS);
+      await ctx.send(MESSAGES['ru'].NOT_REGISTERED_FOR_SETTINGS);
       return;
     }
 
-    await editMessage(ctx, MESSAGES['ru'].SETTINGS, {
-      reply_markup: settingsController({
-        user,
-      }).reply_markup,
-      parse_mode: 'HTML',
+    await ctx.send(MESSAGES['ru'].SETTINGS, {
+      keyboard: settingsController({ user }),
     });
   }
 
-  @Action('change-group')
-  async changeGroup(@Ctx() ctx: Context & { scene: any }) {
-    if (ctx.callbackQuery && 'data' in ctx.callbackQuery) {
-      await ctx
-        .deleteMessage(ctx.callbackQuery.message.message_id)
-        .catch((err) => err.error_code !== 400 && this.logger.error(err));
-    }
+  @Hears(/сменить группу/i)
+  async changeGroup(@Ctx() ctx: MessageContext) {
     await ctx.scene.enter(SELECT_GROUP_WIZARD);
   }
 
-  @Action(/change-detail-week/i)
-  async changeDetailWeek(@Ctx() ctx: Context) {
-    const flag =
-      (ctx.callbackQuery as { data: string }).data.split('=')[1] === 'true';
-    const updated_user = await this.usersService.editInfo(ctx.from.id, {
-      detail_week: flag,
+  @Hears(/подробная неделя/i)
+  async changeDetailWeek(@Ctx() ctx: MessageContext) {
+    await ctx.setActivity();
+
+    const flag = String(ctx.messagePayload?.state) === 'true';
+    const updated_user = await this.usersService.editInfo(ctx.peerId, {
+      detail_week: !flag,
     });
-    await editMessage(
-      ctx,
+
+    await ctx.send(
       MESSAGES['ru'].DETAIL_WEEK_SWITCHED(updated_user.detail_week),
       {
-        reply_markup: settingsController({
+        keyboard: settingsController({
           user: updated_user,
-        }).reply_markup,
-        parse_mode: 'HTML',
+        }),
       },
     );
   }
-  @Action(/change-hide-build/i)
-  async changeHideBuildings(@Ctx() ctx: Context) {
-    const flag =
-      (ctx.callbackQuery as { data: string }).data.split('=')[1] === 'true';
-    const updated_user = await this.usersService.editInfo(ctx.from.id, {
-      hide_buildings: flag,
+
+  @Hears(/показывать корпус/i)
+  async changeHideBuildings(@Ctx() ctx: MessageContext) {
+    await ctx.setActivity();
+
+    const flag = String(ctx.messagePayload?.state) === 'true';
+    const updated_user = await this.usersService.editInfo(ctx.peerId, {
+      hide_buildings: !flag,
     });
-    await editMessage(
-      ctx,
+
+    await ctx.send(
       MESSAGES['ru'].HIDE_BUILDINGS_SWITCHED(updated_user.hide_buildings),
       {
-        reply_markup: settingsController({
+        keyboard: settingsController({
           user: updated_user,
-        }).reply_markup,
-        parse_mode: 'HTML',
+        }),
       },
     );
   }
 
-  @Action(/toggle_allow_mailing/i)
-  async toggleAllowMailing(@Ctx() ctx: Context) {
-    const flag =
-      (ctx.callbackQuery as { data: string }).data.split('=')[1] === 'true';
-    const updated_user = await this.usersService.editInfo(ctx.from.id, {
-      allow_mailing: flag,
-    });
-    await editMessage(
-      ctx,
-      MESSAGES['ru'].ALLOW_MAILING_CHANGED(updated_user.allow_mailing),
-      {
-        reply_markup: settingsController({
-          user: updated_user,
-        }).reply_markup,
-      },
-    );
-  }
-
-  @Action('link-w-group')
-  async getLinkWithGroup(@Ctx() ctx: Context) {
-    const user = await this.usersService.getInfo(ctx.from.id);
-
-    if (!user) {
-      await editMessage(ctx, MESSAGES['ru'].NOT_REGISTERED_FOR_SETTINGS);
-      return;
-    }
-
-    await ctx.reply(
-      MESSAGES['ru'].LINK_WITH_GROUP(
-        ctx.botInfo.username,
-        this.transliterator.decode(user.group_name),
-      ),
-      {
-        parse_mode: 'HTML',
-        link_preview_options: {
-          is_disabled: true,
-        },
-      },
-    );
-  }
+  // @Hears(/получать рассылку/i)
+  // async toggleAllowMailing(@Ctx() ctx: MessageContext) {
+  //   const flag =
+  //     (ctx.callbackQuery as { data: string }).data.split('=')[1] === 'true';
+  //   const updated_user = await this.usersService.editInfo(ctx.peerId, {
+  //     allow_mailing: flag,
+  //   });
+  //   await editMessage(
+  //     ctx,
+  //     MESSAGES['ru'].ALLOW_MAILING_CHANGED(updated_user.allow_mailing),
+  //     {
+  //       reply_markup: settingsController({
+  //         user: updated_user,
+  //       }).reply_markup,
+  //     },
+  //   );
+  // }
 }

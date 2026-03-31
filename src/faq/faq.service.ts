@@ -1,13 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { DataService } from '../data/data.service';
 import { DataEntity } from '../data/data.entity';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
-import * as telegramifyMarkdown from 'telegramify-markdown';
 
 @Injectable()
 export class FaqService {
-  constructor(private dataService: DataService) {}
+  constructor(private dataService: DataService) { }
 
   async getFaq(languages?: DataEntity['language'][]) {
     let faqItems = await this.dataService.getData('faq');
@@ -38,11 +35,5 @@ export class FaqService {
       key: 'faq',
       language: language || 'ru',
     });
-  }
-
-  async test() {
-    const r = telegramifyMarkdown('# Hello World', 'keep');
-    console.log(r);
-    return r;
   }
 }
