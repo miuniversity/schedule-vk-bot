@@ -91,9 +91,6 @@ export class GreeterWizard {
         uid: String(ctx.peerId),
         group_id: parseInt(group_id),
         group_name: selected_group.label,
-        // first_name: user.first_name,
-        // last_name: user.last_name,
-        // username: user.username,
         register_source: 'directly',
       };
 
