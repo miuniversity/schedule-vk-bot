@@ -6,8 +6,8 @@ import { ScheduleService } from './schedule.service';
 import { dayController, weekController } from './schedule.buttons';
 import { UsersService } from '../users/users.service';
 import { MESSAGES } from '../app.constants';
-import { getDayOfWeek } from 'src/utils/getDayOfWeek';
-import eventFilter, { EVENTS } from 'src/utils/eventFilter';
+import { getDayOfWeek } from '../utils/getDayOfWeek';
+import eventFilter, { EVENTS } from '../utils/eventFilter';
 
 @Update()
 export class ScheduleUpdate {
@@ -15,7 +15,7 @@ export class ScheduleUpdate {
     @InjectVkApi() readonly vk: VK,
     private readonly scheduleService: ScheduleService,
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   @On('message_event', eventFilter)
   async getForDay(@Ctx() ctx: MessageEventContext, @Next() next: NextFunction) {
@@ -52,8 +52,8 @@ export class ScheduleUpdate {
           data instanceof Error
             ? MESSAGES['ru'].NO_ANSWER_RETRY
             : this.scheduleService.prepareTextMessageForDay(data, date, {
-                hide_buildings: user.hide_buildings,
-              }),
+              hide_buildings: user.hide_buildings,
+            }),
         keyboard: dayController(date, data instanceof Error),
       });
       return;
@@ -63,8 +63,8 @@ export class ScheduleUpdate {
       data instanceof Error
         ? MESSAGES['ru'].NO_ANSWER_RETRY
         : this.scheduleService.prepareTextMessageForDay(data, date, {
-            hide_buildings: user.hide_buildings,
-          }),
+          hide_buildings: user.hide_buildings,
+        }),
       {
         keyboard: dayController(date, data instanceof Error),
       },
@@ -105,12 +105,12 @@ export class ScheduleUpdate {
       data instanceof Error
         ? MESSAGES['ru'].NO_ANSWER_RETRY
         : this.scheduleService[
-            user.detail_week
-              ? 'prepareTextMessageForDay'
-              : 'prepareTextMessageForWeek'
-          ](data, date, {
-            hide_buildings: user.hide_buildings,
-          });
+          user.detail_week
+            ? 'prepareTextMessageForDay'
+            : 'prepareTextMessageForWeek'
+        ](data, date, {
+          hide_buildings: user.hide_buildings,
+        });
 
     const keyboard = weekController(date, {
       hasError: data instanceof Error,
@@ -118,12 +118,12 @@ export class ScheduleUpdate {
         data instanceof Error
           ? []
           : data
-              .map((i) => i.date)
-              .filter((x, i, a) => a.indexOf(x) === i)
-              .map((i) => ({
-                date: new Date(i),
-                name: getDayOfWeek(new Date(i), true),
-              })),
+            .map((i) => i.date)
+            .filter((x, i, a) => a.indexOf(x) === i)
+            .map((i) => ({
+              date: new Date(i),
+              name: getDayOfWeek(new Date(i), true),
+            })),
     });
 
     await this.vk.api.messages.edit({

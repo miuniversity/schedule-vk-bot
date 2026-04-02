@@ -1,6 +1,6 @@
 import { Keyboard } from 'vk-io';
 import { UserEntity } from '../users/user.entity';
-import { EVENTS } from 'src/utils/eventFilter';
+import { EVENTS } from '../utils/eventFilter';
 
 export function settingsController({ user }: { user: Partial<UserEntity> }) {
   const kbdBuilder = Keyboard.builder().inline();

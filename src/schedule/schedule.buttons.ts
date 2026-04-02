@@ -1,7 +1,7 @@
+import { Keyboard } from 'vk-io';
 import { formatDate } from '../utils/formatDate';
 import { addDays, addWeeks, isThisWeek, isToday } from 'date-fns';
-import { EVENTS } from 'src/utils/eventFilter';
-import { Keyboard } from 'vk-io';
+import { EVENTS } from '../utils/eventFilter';
 
 export const dayController = (date: Date, hasError = false) => {
   const kbdBuilder = Keyboard.builder().inline();

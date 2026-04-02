@@ -4,7 +4,7 @@ import { UsersModule } from '../users/users.module';
 import { ApiModule } from '../api/api.module';
 
 @Module({
-  imports: [UsersModule, ApiModule],
+  imports: [ApiModule, UsersModule],
   providers: [GreeterWizard],
 })
-export class GreeterModule {}
+export class GreeterModule { }

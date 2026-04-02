@@ -1,5 +1,5 @@
-import { EVENTS } from 'src/utils/eventFilter';
 import { Keyboard } from 'vk-io';
+import { EVENTS } from '../utils/eventFilter';
 
 export const mainMenu = Keyboard.builder()
   .inline()

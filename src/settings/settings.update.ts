@@ -5,14 +5,14 @@ import { NextFunction } from 'express';
 import { settingsController } from './settings.buttons';
 import { UsersService } from '../users/users.service';
 import { MESSAGES, SELECT_GROUP_WIZARD } from '../app.constants';
-import eventFilter, { EVENTS } from 'src/utils/eventFilter';
+import eventFilter, { EVENTS } from '../utils/eventFilter';
 
 @Update()
 export class SettingsUpdate {
   constructor(
     @InjectVkApi() readonly vk: VK,
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   @Hears([/настройки/i])
   async onSettings(@Ctx() ctx: MessageContext, @Next() next: NextFunction) {

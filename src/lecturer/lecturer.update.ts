@@ -1,18 +1,18 @@
 import { Ctx, InjectVkApi, Next, On, Update } from 'nestjs-vk';
 import { MessageEventContext, VK } from 'vk-io';
+import { NextFunction } from 'express';
 
 import { MESSAGES, SELECT_LECTURER_WIZARD } from '../app.constants';
 import { LecturerService } from './lecturer.service';
 import { lecturerController } from './lecturer.buttons';
-import eventFilter, { EVENTS } from 'src/utils/eventFilter';
-import { NextFunction } from 'express';
+import eventFilter, { EVENTS } from '../utils/eventFilter';
 
 @Update()
 export class LecturerUpdate {
   constructor(
     @InjectVkApi() readonly vk: VK,
     private readonly lecturerService: LecturerService,
-  ) {}
+  ) { }
 
   @On('message_event', eventFilter)
   async searchLecturer(

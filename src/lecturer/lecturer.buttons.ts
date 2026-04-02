@@ -1,6 +1,6 @@
 import { formatDate } from '../utils/formatDate';
 import { addWeeks, isThisWeek } from 'date-fns';
-import { EVENTS } from 'src/utils/eventFilter';
+import { EVENTS } from '../utils/eventFilter';
 import { Keyboard } from 'vk-io';
 
 export const searchingLecturerList = (

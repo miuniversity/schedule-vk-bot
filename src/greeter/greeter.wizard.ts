@@ -2,12 +2,12 @@ import { MessageContext, MessageEventContext } from 'vk-io';
 import { AddStep, Ctx, Scene, SceneEnter } from 'nestjs-vk';
 import { IStepContext } from '@vk-io/scenes';
 
+import { searchingGroupList } from './greeter.buttons';
 import { MESSAGES, SELECT_GROUP_WIZARD } from '../app.constants';
 import { SearchResponseData } from '../api/api.interface';
-import { ApiService } from 'src/api/api.service';
-import { searchingGroupList } from './greeter.buttons';
-import { UsersService } from 'src/users/users.service';
-import { UserEntity } from 'src/users/user.entity';
+import { ApiService } from '../api/api.service';
+import { UsersService } from '../users/users.service';
+import { UserEntity } from '../users/user.entity';
 
 type GreetingState = {
   groups: SearchResponseData[];
@@ -16,10 +16,11 @@ type GreetingState = {
 
 @Scene(SELECT_GROUP_WIZARD)
 export class GreeterWizard {
+
   constructor(
     readonly apiService: ApiService,
     readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   @SceneEnter()
   async onStart(@Ctx() ctx: MessageContext & IStepContext<GreetingState>) {
