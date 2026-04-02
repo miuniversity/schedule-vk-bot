@@ -8,14 +8,17 @@ import { floorMapsMenuButtons } from './floor-maps.buttons';
 
 @Update()
 export class FloorMapsUpdate {
-  constructor(@InjectVkApi() readonly vk: VK, private readonly configService: ConfigService) { }
+  constructor(
+    @InjectVkApi() readonly vk: VK,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Hears([/^карта/i])
   async getFloorMapsMenu(@Ctx() ctx: MessageContext) {
     await ctx.send({
       message: MESSAGES['ru'].FLOOR_MENU,
-      keyboard: floorMapsMenuButtons
-    })
+      keyboard: floorMapsMenuButtons,
+    });
   }
 
   @Hears([/^(\d\s+)?этаж(\s+\d)?$/i])
@@ -41,7 +44,7 @@ export class FloorMapsUpdate {
       new Array(6).fill(null).map((_, index) => ({
         value: `${this.configService.get('STATIC_BASE_URL')}/file/floor-${index + 1}.jpg`,
         contentType: 'image/jpeg',
-      }))
+      })),
     );
   }
 }

@@ -7,4 +7,4 @@ import { ApiModule } from '../api/api.module';
   imports: [UsersModule, ApiModule],
   providers: [GreeterWizard],
 })
-export class GreeterModule { }
+export class GreeterModule {}

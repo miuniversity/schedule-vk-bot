@@ -3,7 +3,6 @@ import { addDays, addWeeks, isThisWeek, isToday } from 'date-fns';
 import { EVENTS } from 'src/utils/eventFilter';
 import { Keyboard } from 'vk-io';
 
-
 export const dayController = (date: Date, hasError = false) => {
   const kbdBuilder = Keyboard.builder().inline();
 
@@ -14,8 +13,9 @@ export const dayController = (date: Date, hasError = false) => {
         payload: {
           event: EVENTS.SCHEDULE_DAY,
           date: formatDate(date),
-        }
-      }).row()
+        },
+      })
+      .row();
   }
 
   kbdBuilder
@@ -41,30 +41,30 @@ export const dayController = (date: Date, hasError = false) => {
       payload: {
         event: EVENTS.SCHEDULE_WEEK,
         date: formatDate(date),
-      }
-    })
+      },
+    });
 
   if (!isToday(date)) {
-    kbdBuilder
-      .callbackButton({
-        label: 'Сегодня',
-        payload: {
-          event: EVENTS.SCHEDULE_DAY,
-          date: 'current',
-        }
-      })
+    kbdBuilder.callbackButton({
+      label: 'Сегодня',
+      payload: {
+        event: EVENTS.SCHEDULE_DAY,
+        date: 'current',
+      },
+    });
   }
 
-  kbdBuilder.textButton({
-    label: 'Меню',
-    payload: {
-      event: EVENTS.MENU,
-    }
-  })
-    .row()
+  kbdBuilder
+    .textButton({
+      label: 'Меню',
+      payload: {
+        event: EVENTS.MENU,
+      },
+    })
+    .row();
 
   return kbdBuilder;
-}
+};
 
 export const weekController = (
   date: Date,
@@ -78,10 +78,10 @@ export const weekController = (
         label: day.name,
         payload: {
           event: EVENTS.SCHEDULE_DAY,
-          date: formatDate(day.date)
+          date: formatDate(day.date),
         },
         color: Keyboard.PRIMARY_COLOR,
-      })
+      });
 
       if (options.days.length > 5 && index % 4 === 0 && index !== 0) {
         kbgBuilder.row();
@@ -98,8 +98,9 @@ export const weekController = (
         payload: {
           event: EVENTS.SCHEDULE_WEEK,
           date: formatDate(date),
-        }
-      }).row()
+        },
+      })
+      .row();
   }
 
   kbgBuilder
@@ -108,16 +109,16 @@ export const weekController = (
       payload: {
         event: EVENTS.SCHEDULE_WEEK,
         date: formatDate(addWeeks(date, -1)),
-      }
+      },
     })
     .callbackButton({
       label: 'След.',
       payload: {
         event: EVENTS.SCHEDULE_WEEK,
         date: formatDate(addWeeks(date, 1)),
-      }
+      },
     })
-    .row()
+    .row();
 
   if (!isThisWeek(date, { weekStartsOn: 1 })) {
     kbgBuilder.callbackButton({
@@ -125,16 +126,16 @@ export const weekController = (
       payload: {
         event: EVENTS.SCHEDULE_WEEK,
         date: 'current',
-      }
-    })
+      },
+    });
   } else {
     kbgBuilder.callbackButton({
       label: 'Сегодня',
       payload: {
         event: EVENTS.SCHEDULE_DAY,
         date: 'current',
-      }
-    })
+      },
+    });
   }
 
   kbgBuilder
@@ -142,9 +143,9 @@ export const weekController = (
       label: 'Меню',
       payload: {
         event: EVENTS.MENU,
-      }
+      },
     })
-    .row()
+    .row();
 
   return kbgBuilder;
 };

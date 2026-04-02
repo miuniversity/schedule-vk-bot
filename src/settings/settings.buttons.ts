@@ -10,7 +10,7 @@ export function settingsController({ user }: { user: Partial<UserEntity> }) {
       label: `Сменить группу | ${user.group_name}`,
       payload: {
         event: EVENTS.SETTINGS,
-        action: 'change-group'
+        action: 'change-group',
       },
     })
     .row()
@@ -19,9 +19,11 @@ export function settingsController({ user }: { user: Partial<UserEntity> }) {
       payload: {
         event: EVENTS.SETTINGS,
         action: 'toggle-detail-week',
-        state: user.detail_week
+        state: user.detail_week,
       },
-      color: user.detail_week ? Keyboard.POSITIVE_COLOR : Keyboard.NEGATIVE_COLOR,
+      color: user.detail_week
+        ? Keyboard.POSITIVE_COLOR
+        : Keyboard.NEGATIVE_COLOR,
     })
     .row()
     .callbackButton({
@@ -29,15 +31,17 @@ export function settingsController({ user }: { user: Partial<UserEntity> }) {
       payload: {
         event: EVENTS.SETTINGS,
         action: 'toggle-hide-buildings',
-        state: user.hide_buildings
+        state: user.hide_buildings,
       },
-      color: !user.hide_buildings ? Keyboard.POSITIVE_COLOR : Keyboard.NEGATIVE_COLOR,
+      color: !user.hide_buildings
+        ? Keyboard.POSITIVE_COLOR
+        : Keyboard.NEGATIVE_COLOR,
     })
     .row()
     .textButton({
       label: 'Меню',
       payload: { event: EVENTS.MENU },
-    })
+    });
 
-  return kbdBuilder
+  return kbdBuilder;
 }

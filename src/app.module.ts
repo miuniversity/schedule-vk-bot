@@ -2,9 +2,9 @@ import { Global, Module } from '@nestjs/common';
 import { VkModule } from 'nestjs-vk';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import * as https from 'https';
 
 import { AppUpdate } from './app.update';
-import { MainMiddleware } from './main.middleware';
 import { UsersModule } from './users/users.module';
 import { GreeterModule } from './greeter/greeter.module';
 import { MenuModule } from './menu/menu.module';
@@ -27,24 +27,18 @@ import { LecturerModule } from './lecturer/lecturer.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    VkModule.forManagers({
-      // useSessionManager: false,
-      // useSceneManager: false,
-      // useHearManager: false,
-    }),
+    VkModule.forManagers({}),
     VkModule.forRootAsync({
       imports: [ConfigModule],
-      inject: [ConfigService, MainMiddleware],
-      useFactory: async (configService: ConfigService, mainMiddleware: MainMiddleware) => ({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
         token: configService.get<string>('TOKEN'),
         options: {
           pollingGroupId: +configService.get<number>('GROUP_ID'),
           apiMode: 'sequential',
           language: 'ru',
-          agent: new (require('https').Agent)({ keepAlive: false }),
+          agent: new https.Agent({ keepAlive: false }),
         },
-        // middlewaresBefore: [mainMiddleware.middlewaresBefore],
-        // middlewaresAfter: [mainMiddleware.middlewaresAfter],
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -78,7 +72,6 @@ import { LecturerModule } from './lecturer/lecturer.module';
     NotificationsModule,
     WebhookModule,
   ],
-  providers: [MainMiddleware, AppUpdate],
-  exports: [MainMiddleware],
+  providers: [AppUpdate],
 })
-export class AppModule { }
+export class AppModule {}

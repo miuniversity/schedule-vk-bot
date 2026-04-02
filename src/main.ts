@@ -19,7 +19,8 @@ async function bootstrap() {
             errors(),
             printf(
               (info) =>
-                `${info.timestamp} ${info.level}:${'context' in info && info.context ? ` [${info.context}]` : ''
+                `${info.timestamp} ${info.level}:${
+                  'context' in info && info.context ? ` [${info.context}]` : ''
                 } ${info.message}`,
             ),
           ),
@@ -33,7 +34,8 @@ async function bootstrap() {
             errors({ stack: true }),
             printf(
               (info) =>
-                `${info.timestamp} ${info.level}:${'context' in info && info.context ? ` [${info.context}]` : ''
+                `${info.timestamp} ${info.level}:${
+                  'context' in info && info.context ? ` [${info.context}]` : ''
                 } ${'stack' in info && info.stack ? info.stack : info.message}`,
             ),
           ),

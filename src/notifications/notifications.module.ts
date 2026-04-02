@@ -11,4 +11,4 @@ import { HttpModule } from '@nestjs/axios';
   providers: [NotificationsService],
   exports: [NotificationsService],
 })
-export class NotificationsModule { }
+export class NotificationsModule {}

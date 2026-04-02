@@ -3,7 +3,9 @@ import { addWeeks, isThisWeek } from 'date-fns';
 import { EVENTS } from 'src/utils/eventFilter';
 import { Keyboard } from 'vk-io';
 
-export const searchingLecturerList = (lecturers: { label: string; id: number }[]) => {
+export const searchingLecturerList = (
+  lecturers: { label: string; id: number }[],
+) => {
   const kbdBuilder = Keyboard.builder().inline();
 
   lecturers.forEach((lecturer) => {
@@ -16,20 +18,20 @@ export const searchingLecturerList = (lecturers: { label: string; id: number }[]
         },
         color: Keyboard.PRIMARY_COLOR,
       })
-      .row()
-  })
+      .row();
+  });
 
   kbdBuilder
     .textButton({
       label: 'Отмена',
       payload: { event: EVENTS.CANCEL },
     })
-    .row()
+    .row();
 
-  return kbdBuilder
-}
+  return kbdBuilder;
+};
 
-export const requestLecturerSchedule = (lecturer_id: number, date: Date) => {
+export const requestLecturerSchedule = (lecturer_id: number) => {
   const kbdBuilder = Keyboard.builder().inline();
 
   kbdBuilder
@@ -40,7 +42,7 @@ export const requestLecturerSchedule = (lecturer_id: number, date: Date) => {
         lecturer_id: lecturer_id,
         date: 'current',
         noDelete: true,
-      }
+      },
     })
     .row()
     .callbackButton({
@@ -48,12 +50,12 @@ export const requestLecturerSchedule = (lecturer_id: number, date: Date) => {
       payload: {
         event: EVENTS.SELECT_LECTURER,
         noDelete: true,
-      }
+      },
     })
-    .row()
+    .row();
 
-  return kbdBuilder
-}
+  return kbdBuilder;
+};
 
 export const lecturerController = (
   lecturer_id: number,
@@ -70,9 +72,9 @@ export const lecturerController = (
           event: EVENTS.SCHEDULE_LECTURER,
           lecturer_id: lecturer_id,
           date: formatDate(date),
-        }
+        },
       })
-      .row()
+      .row();
   }
 
   kbdBuilder
@@ -94,20 +96,18 @@ export const lecturerController = (
       },
       color: Keyboard.PRIMARY_COLOR,
     })
-    .row()
+    .row();
 
   if (!isThisWeek(date, { weekStartsOn: 1 })) {
-    kbdBuilder
-      .callbackButton({
-        label: 'Текущая',
-        payload: {
-          event: EVENTS.SCHEDULE_LECTURER,
-          lecturer_id: lecturer_id,
-          date: 'current',
-        },
-      })
+    kbdBuilder.callbackButton({
+      label: 'Текущая',
+      payload: {
+        event: EVENTS.SCHEDULE_LECTURER,
+        lecturer_id: lecturer_id,
+        date: 'current',
+      },
+    });
   }
-
 
   kbdBuilder
     .textButton({
@@ -116,7 +116,7 @@ export const lecturerController = (
         event: EVENTS.MENU,
       },
     })
-    .row()
+    .row();
 
   return kbdBuilder;
-}
+};

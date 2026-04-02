@@ -5,10 +5,10 @@ export const MESSAGES = {
   ru: {
     ACTIVITY_RESTORATION: 'С возвращением!',
     ALLOW_MAILING_CHANGED: (flag: boolean) =>
-      `Получение рассылок ${flag ? 'включено' : 'выключено'}\n\n${MESSAGES['ru'].SETTINGS
+      `Получение рассылок ${flag ? 'включено' : 'выключено'}\n\n${
+        MESSAGES['ru'].SETTINGS
       }`,
-    ALREADY_REGISTERED:
-      'Ты уже зарегистрирован(а)!',
+    ALREADY_REGISTERED: 'Ты уже зарегистрирован(а)!',
     ATTACHED_MESSAGE_FOR_MAILING_NOT_FOUND:
       'Нет прикреплённого сообщения или текста для рассылки',
     CANCEL_SEARCH: 'Поиск отменён',
@@ -23,7 +23,8 @@ export const MESSAGES = {
     ],
     DAYS_WEEK_SHORT: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
     DETAIL_WEEK_SWITCHED: (flag: boolean) =>
-      `Подробная неделя ${flag ? 'включена' : 'выключена'}\n\n${MESSAGES['ru'].SETTINGS
+      `Подробная неделя ${flag ? 'включена' : 'выключена'}\n\n${
+        MESSAGES['ru'].SETTINGS
       }`,
     ENTER_GROUP: 'Напиши свою группу (можно не полностью)',
     ENTER_LECTURER: 'Напиши ФИО преподавателя (можно не полностью)',
@@ -37,8 +38,8 @@ export const MESSAGES = {
       `Выбрана группа ${group_name}${instruction ? '\nСменить группу можно в настройках' : ''}`,
     HELP_INFO:
       'Бот получает расписание напрямую с сайта университета.\n\n' +
-      'Основное управление ботом происходит при помощи кнопок в сообщениях бота.\n'
-      /*
+      'Основное управление ботом происходит при помощи кнопок в сообщениях бота.\n',
+    /*
        +
       '\nОднако это не всегда удобно. На этот случай существует способ запросить у бота расписание, написав ему сообщение, к примеру, "расписание на завтра" или "расписание с понедельника по пятницу".\n' +
       '\nP.s. для более продивнутых, бот понимает такие форматы дат, как:\n' +
@@ -47,9 +48,9 @@ export const MESSAGES = {
       'через месяц\n' +
       'в следующий четверг\n' +
       '06.09.2023\n'
-      */,
-    HIDE_BUILDINGS_SWITCHED: (flag: boolean) =>
-      `Теперь корпус рядом с кабинетом будет ${flag ? 'скрыт' : 'показан'}\n\n${MESSAGES['ru'].SETTINGS
+      */ HIDE_BUILDINGS_SWITCHED: (flag: boolean) =>
+      `Теперь корпус рядом с кабинетом будет ${flag ? 'скрыт' : 'показан'}\n\n${
+        MESSAGES['ru'].SETTINGS
       }`,
     LECTURER_SELECTED: (lecturer_name: string) =>
       `Выбран преподаватель - ${lecturer_name}`,

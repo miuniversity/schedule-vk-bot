@@ -10,7 +10,7 @@ export class FaqUpdate {
   constructor(
     private readonly usersService: UsersService,
     private readonly faqService: FaqService,
-  ) { }
+  ) {}
 
   @Hears([/faq/i])
   async getFaq(@Ctx() ctx: MessageContext | MessageEventContext) {
@@ -20,8 +20,9 @@ export class FaqUpdate {
     const [faqData] = await this.faqService.getFaq([user?.language || 'ru']);
 
     await ctx.send({
-      message: faqData?.value || MESSAGES[user?.language || 'ru'].FAQ_TEXT_NOT_FOUND,
+      message:
+        faqData?.value || MESSAGES[user?.language || 'ru'].FAQ_TEXT_NOT_FOUND,
       dont_parse_links: 1,
-    })
+    });
   }
 }

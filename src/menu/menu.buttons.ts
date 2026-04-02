@@ -1,7 +1,8 @@
-import { EVENTS } from "src/utils/eventFilter";
-import { Keyboard } from "vk-io";
+import { EVENTS } from 'src/utils/eventFilter';
+import { Keyboard } from 'vk-io';
 
-export const mainMenu = Keyboard.builder().inline()
+export const mainMenu = Keyboard.builder()
+  .inline()
   .callbackButton({
     label: 'На день',
     payload: {
@@ -42,5 +43,4 @@ export const mainMenu = Keyboard.builder().inline()
   .textButton({
     label: 'Настройки',
   })
-  .row()
-
+  .row();

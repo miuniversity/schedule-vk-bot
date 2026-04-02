@@ -7,30 +7,30 @@ import { SceneManager } from '@vk-io/scenes';
 
 @Injectable()
 export class MainMiddleware {
-    private readonly sessionManager: SessionManager;
-    @Inject(VK_HEAR_MANAGER)
-    private readonly hearManagerProvider: HearManager<MessageContext>;
-    @Inject(VK_SCENE_MANAGER)
-    private readonly sceneManager: SceneManager;
+  private readonly sessionManager: SessionManager;
+  @Inject(VK_HEAR_MANAGER)
+  private readonly hearManagerProvider: HearManager<MessageContext>;
+  @Inject(VK_SCENE_MANAGER)
+  private readonly sceneManager: SceneManager;
 
-    constructor() {
-        this.sessionManager = new SessionManager({});
-    }
+  constructor() {
+    this.sessionManager = new SessionManager({});
+  }
 
-    get middlewaresBefore() {
-        const composer = Composer.builder<Context>();
+  get middlewaresBefore() {
+    const composer = Composer.builder<Context>();
 
-        composer.use(this.sessionManager.middleware);
-        composer.use(this.sceneManager.middleware);
+    composer.use(this.sessionManager.middleware);
+    composer.use(this.sceneManager.middleware);
 
-        return composer.compose();
-    }
+    return composer.compose();
+  }
 
-    get middlewaresAfter() {
-        const composer = Composer.builder<Context>();
+  get middlewaresAfter() {
+    const composer = Composer.builder<Context>();
 
-        composer.use(this.hearManagerProvider.middleware);
+    composer.use(this.hearManagerProvider.middleware);
 
-        return composer.compose();
-    }
+    return composer.compose();
+  }
 }

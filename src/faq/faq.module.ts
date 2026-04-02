@@ -11,4 +11,4 @@ import { FaqUpdate } from './faq.update';
   providers: [FaqService, FaqUpdate],
   exports: [FaqService],
 })
-export class FaqModule { }
+export class FaqModule {}

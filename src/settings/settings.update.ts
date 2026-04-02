@@ -9,11 +9,16 @@ import eventFilter, { EVENTS } from 'src/utils/eventFilter';
 
 @Update()
 export class SettingsUpdate {
-  constructor(@InjectVkApi() readonly vk: VK, private readonly usersService: UsersService) { }
+  constructor(
+    @InjectVkApi() readonly vk: VK,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Hears([/настройки/i])
   async onSettings(@Ctx() ctx: MessageContext, @Next() next: NextFunction) {
-    if (!!ctx.isOutbox) { return next(); }
+    if (!!ctx.isOutbox) {
+      return next();
+    }
 
     await ctx.setActivity();
 
@@ -31,17 +36,31 @@ export class SettingsUpdate {
   }
 
   @On('message_event', eventFilter)
-  async changeGroup(@Ctx() ctx: MessageEventContext, @Next() next: NextFunction) {
-    if (ctx.eventPayload.event !== EVENTS.SETTINGS) { return next(); }
-    if (ctx.eventPayload.action !== 'change-group') { return next(); }
+  async changeGroup(
+    @Ctx() ctx: MessageEventContext,
+    @Next() next: NextFunction,
+  ) {
+    if (ctx.eventPayload.event !== EVENTS.SETTINGS) {
+      return next();
+    }
+    if (ctx.eventPayload.action !== 'change-group') {
+      return next();
+    }
 
     await ctx.scene.enter(SELECT_GROUP_WIZARD);
   }
 
   @On('message_event', eventFilter)
-  async changeDetailWeek(@Ctx() ctx: MessageEventContext, @Next() next: NextFunction) {
-    if (ctx.eventPayload.event !== EVENTS.SETTINGS) { return next(); }
-    if (ctx.eventPayload.action !== 'toggle-detail-week') { return next(); }
+  async changeDetailWeek(
+    @Ctx() ctx: MessageEventContext,
+    @Next() next: NextFunction,
+  ) {
+    if (ctx.eventPayload.event !== EVENTS.SETTINGS) {
+      return next();
+    }
+    if (ctx.eventPayload.action !== 'toggle-detail-week') {
+      return next();
+    }
 
     const flag = String(ctx.eventPayload.state) === 'true';
     const updated_user = await this.usersService.editInfo(ctx.peerId, {
@@ -55,14 +74,20 @@ export class SettingsUpdate {
       keyboard: settingsController({
         user: updated_user,
       }),
-    },
-    );
+    });
   }
 
   @On('message_event', eventFilter)
-  async changeHideBuildings(@Ctx() ctx: MessageEventContext, @Next() next: NextFunction) {
-    if (ctx.eventPayload.event !== EVENTS.SETTINGS) { return next(); }
-    if (ctx.eventPayload.action !== 'toggle-hide-buildings') { return next(); }
+  async changeHideBuildings(
+    @Ctx() ctx: MessageEventContext,
+    @Next() next: NextFunction,
+  ) {
+    if (ctx.eventPayload.event !== EVENTS.SETTINGS) {
+      return next();
+    }
+    if (ctx.eventPayload.action !== 'toggle-hide-buildings') {
+      return next();
+    }
 
     const flag = String(ctx.eventPayload.state) === 'true';
     const updated_user = await this.usersService.editInfo(ctx.peerId, {
@@ -72,12 +97,13 @@ export class SettingsUpdate {
     await this.vk.api.messages.edit({
       peer_id: ctx.peerId,
       cmid: ctx.conversationMessageId,
-      message: MESSAGES['ru'].HIDE_BUILDINGS_SWITCHED(updated_user.hide_buildings),
+      message: MESSAGES['ru'].HIDE_BUILDINGS_SWITCHED(
+        updated_user.hide_buildings,
+      ),
       keyboard: settingsController({
         user: updated_user,
       }),
-    },
-    );
+    });
   }
 
   // @Hears(/получать рассылку/i)

@@ -1,5 +1,5 @@
 import { MessageContext, MessageEventContext } from 'vk-io';
-import { AddStep, Ctx, On, Scene, SceneEnter } from 'nestjs-vk';
+import { AddStep, Ctx, Scene, SceneEnter } from 'nestjs-vk';
 import { IStepContext } from '@vk-io/scenes';
 
 import { MESSAGES, SELECT_GROUP_WIZARD } from '../app.constants';
@@ -12,14 +12,14 @@ import { UserEntity } from 'src/users/user.entity';
 type GreetingState = {
   groups: SearchResponseData[];
   status: 'idle' | 'search';
-}
+};
 
 @Scene(SELECT_GROUP_WIZARD)
 export class GreeterWizard {
   constructor(
     readonly apiService: ApiService,
     readonly usersService: UsersService,
-  ) { }
+  ) {}
 
   @SceneEnter()
   async onStart(@Ctx() ctx: MessageContext & IStepContext<GreetingState>) {
@@ -38,12 +38,14 @@ export class GreeterWizard {
 
     if (searchString && ctx.scene.state.status !== 'search') {
       const msg = await ctx.send(MESSAGES['ru'].SEARCHING);
-      await ctx.setActivity()
+      await ctx.setActivity();
 
       ctx.scene.state.status = 'search';
-      const groups = await this.apiService.search({
-        payload: { term: searchString, type: 'group' },
-      }).finally(() => ctx.scene.state.status = 'idle');
+      const groups = await this.apiService
+        .search({
+          payload: { term: searchString, type: 'group' },
+        })
+        .finally(() => (ctx.scene.state.status = 'idle'));
 
       if (groups instanceof Error) {
         await msg.editMessage({

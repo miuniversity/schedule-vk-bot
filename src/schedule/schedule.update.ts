@@ -15,17 +15,19 @@ export class ScheduleUpdate {
     @InjectVkApi() readonly vk: VK,
     private readonly scheduleService: ScheduleService,
     private readonly usersService: UsersService,
-  ) { }
+  ) {}
 
   @On('message_event', eventFilter)
   async getForDay(@Ctx() ctx: MessageEventContext, @Next() next: NextFunction) {
-    if (ctx.eventPayload.event !== EVENTS.SCHEDULE_DAY) { return next(); }
+    if (ctx.eventPayload.event !== EVENTS.SCHEDULE_DAY) {
+      return next();
+    }
 
     await this.vk.api.messages.edit({
       peer_id: ctx.peerId,
       cmid: ctx.conversationMessageId,
       message: MESSAGES['ru'].FETCHING,
-    })
+    });
 
     const user = await this.usersService.getInfo(ctx.peerId);
 
@@ -46,22 +48,23 @@ export class ScheduleUpdate {
       await this.vk.api.messages.edit({
         peer_id: ctx.peerId,
         cmid: ctx.conversationMessageId,
-        message: data instanceof Error
-          ? MESSAGES['ru'].NO_ANSWER_RETRY
-          : this.scheduleService.prepareTextMessageForDay(data, date, {
-            hide_buildings: user.hide_buildings,
-          }),
+        message:
+          data instanceof Error
+            ? MESSAGES['ru'].NO_ANSWER_RETRY
+            : this.scheduleService.prepareTextMessageForDay(data, date, {
+                hide_buildings: user.hide_buildings,
+              }),
         keyboard: dayController(date, data instanceof Error),
-      })
-      return
+      });
+      return;
     }
 
     await ctx.send(
       data instanceof Error
         ? MESSAGES['ru'].NO_ANSWER_RETRY
         : this.scheduleService.prepareTextMessageForDay(data, date, {
-          hide_buildings: user.hide_buildings,
-        }),
+            hide_buildings: user.hide_buildings,
+          }),
       {
         keyboard: dayController(date, data instanceof Error),
       },
@@ -69,14 +72,19 @@ export class ScheduleUpdate {
   }
 
   @On('message_event', eventFilter)
-  async getForWeek(@Ctx() ctx: MessageEventContext, @Next() next: NextFunction) {
-    if (ctx.eventPayload.event !== EVENTS.SCHEDULE_WEEK) { return next(); }
+  async getForWeek(
+    @Ctx() ctx: MessageEventContext,
+    @Next() next: NextFunction,
+  ) {
+    if (ctx.eventPayload.event !== EVENTS.SCHEDULE_WEEK) {
+      return next();
+    }
 
     await this.vk.api.messages.edit({
       peer_id: ctx.peerId,
       cmid: ctx.conversationMessageId,
       message: MESSAGES['ru'].FETCHING,
-    })
+    });
 
     const user = await this.usersService.getInfo(ctx.peerId);
 
@@ -93,19 +101,30 @@ export class ScheduleUpdate {
       'week',
     );
 
-    const message = data instanceof Error
-      ? MESSAGES['ru'].NO_ANSWER_RETRY
-      : this.scheduleService[user.detail_week ? 'prepareTextMessageForDay' : 'prepareTextMessageForWeek'](data, date, {
-        hide_buildings: user.hide_buildings,
-      })
+    const message =
+      data instanceof Error
+        ? MESSAGES['ru'].NO_ANSWER_RETRY
+        : this.scheduleService[
+            user.detail_week
+              ? 'prepareTextMessageForDay'
+              : 'prepareTextMessageForWeek'
+          ](data, date, {
+            hide_buildings: user.hide_buildings,
+          });
 
     const keyboard = weekController(date, {
       hasError: data instanceof Error,
-      days: data instanceof Error ? [] : data.map((i) => i.date).filter((x, i, a) => a.indexOf(x) === i).map((i) => ({
-        date: new Date(i),
-        name: getDayOfWeek(new Date(i), true),
-      })),
-    })
+      days:
+        data instanceof Error
+          ? []
+          : data
+              .map((i) => i.date)
+              .filter((x, i, a) => a.indexOf(x) === i)
+              .map((i) => ({
+                date: new Date(i),
+                name: getDayOfWeek(new Date(i), true),
+              })),
+    });
 
     await this.vk.api.messages.edit({
       peer_id: ctx.peerId,

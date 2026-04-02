@@ -7,19 +7,16 @@ import { mainMenu } from './menu.buttons';
 
 @Update()
 export class MenuUpdate {
-  constructor(
-
-    private readonly usersService: UsersService,
-  ) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Hears([/меню/i, /menu/i])
   async sendMenu(@Ctx() ctx: MessageContext) {
-    await ctx.setActivity()
+    await ctx.setActivity();
     const user = await this.usersService.getInfo(ctx.peerId);
 
     await ctx.send({
       message: MESSAGES[user?.language ?? 'ru'].MENU,
-      keyboard: mainMenu
-    })
+      keyboard: mainMenu,
+    });
   }
 }

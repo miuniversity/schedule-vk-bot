@@ -10,7 +10,7 @@ import { ApiService } from '../api/api.service';
 export class ScheduleService {
   private logger = new Logger(ScheduleService.name);
 
-  constructor(private readonly apiService: ApiService) { }
+  constructor(private readonly apiService: ApiService) {}
 
   async fetchSchedule(
     group_id: number,
@@ -121,11 +121,12 @@ export class ScheduleService {
       .map((cur, index, arr) =>
         index > 0 && arr[index - 1].beginLesson === cur.beginLesson
           ? `${cur.auditorium}${this.getShortBuilding(cur.building, hide_buildings || cur.auditorium.includes(cur.building))} - ${cur.lecturer}`
-          : `\n${cur.lessonNumberStart} | ${cur.beginLesson} - ${cur.endLesson
-          }\n${cur.discipline} (${cur.kindOfWork.substring(
-            0,
-            3,
-          )}.)\n${cur.auditorium}${this.getShortBuilding(cur.building, hide_buildings || cur.auditorium.includes(cur.building))} - ${cur.lecturer}`,
+          : `\n${cur.lessonNumberStart} | ${cur.beginLesson} - ${
+              cur.endLesson
+            }\n${cur.discipline} (${cur.kindOfWork.substring(
+              0,
+              3,
+            )}.)\n${cur.auditorium}${this.getShortBuilding(cur.building, hide_buildings || cur.auditorium.includes(cur.building))} - ${cur.lecturer}`,
       )
       .join('\n');
   }
@@ -134,9 +135,9 @@ export class ScheduleService {
     return hide_buildings
       ? ''
       : `(${b
-        .split(' ')
-        .map((i) => i[0].toUpperCase())
-        .join('')})`;
+          .split(' ')
+          .map((i) => i[0].toUpperCase())
+          .join('')})`;
   }
 
   private getFormattedDays(lessons: LessonDto[], hide_buildings?: boolean) {
@@ -144,17 +145,19 @@ export class ScheduleService {
       .map((cur, index, arr) =>
         index > 0 && arr[index - 1].beginLesson === cur.beginLesson
           ? `, ${cur.auditorium}${this.getShortBuilding(cur.building, hide_buildings || cur.auditorium.includes(cur.building))}`
-          : `\n${cur.lessonNumberStart} | ${cur.discipline
-          } (${cur.kindOfWork.substring(0, 3)}.) - ${cur.auditorium}${this.getShortBuilding(cur.building, hide_buildings || cur.auditorium.includes(cur.building))}`,
+          : `\n${cur.lessonNumberStart} | ${
+              cur.discipline
+            } (${cur.kindOfWork.substring(0, 3)}.) - ${cur.auditorium}${this.getShortBuilding(cur.building, hide_buildings || cur.auditorium.includes(cur.building))}`,
       )
       .join('');
   }
 
   private getFormattedDate(date: Date, count = 0) {
-    return `${getDayOfWeek(date)} (${date.toLocaleDateString('RU-ru')})${count > 0
-      ? ` - ${count} ${declOfNum(count, ['пара', 'пары', 'пар'])}`
-      : ''
-      }`;
+    return `${getDayOfWeek(date)} (${date.toLocaleDateString('RU-ru')})${
+      count > 0
+        ? ` - ${count} ${declOfNum(count, ['пара', 'пары', 'пар'])}`
+        : ''
+    }`;
   }
 
   private getWeekParity(date: Date) {

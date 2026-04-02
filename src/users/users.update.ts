@@ -6,7 +6,7 @@ import { MESSAGES } from '../app.constants';
 
 @Update()
 export class UsersUpdate {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Hears([/^me/i])
   async getMe(@Ctx() ctx: MessageContext) {
@@ -14,10 +14,10 @@ export class UsersUpdate {
     await ctx.reply(
       user
         ? `id: ${user.id}\n` +
-        `uid: ${user.uid}\n` +
-        `group: ${user.group_name}\n` +
-        `language: ${user.language}\n` +
-        `created: ${user.created_at.toLocaleString()}`
+            `uid: ${user.uid}\n` +
+            `group: ${user.group_name}\n` +
+            `language: ${user.language}\n` +
+            `created: ${user.created_at.toLocaleString()}`
         : MESSAGES['ru'].NOT_REGISTERED,
     );
   }

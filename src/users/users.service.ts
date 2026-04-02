@@ -10,7 +10,7 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-  ) { }
+  ) {}
 
   async register(
     payload: Omit<UserEntity, 'id' | 'updated_at' | 'created_at'>,

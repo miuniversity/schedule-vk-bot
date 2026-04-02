@@ -15,7 +15,7 @@ type LecturerState = {
   lecturers: { label: string; id: number; description: string }[];
   status: 'idle' | 'search';
   cmid?: number;
-}
+};
 
 @Scene(SELECT_LECTURER_WIZARD)
 export class LecturerWizard {
@@ -23,14 +23,14 @@ export class LecturerWizard {
     @InjectVkApi() readonly vk: VK,
     private readonly lecturerService: LecturerService,
     private readonly apiService: ApiService,
-  ) { }
+  ) {}
 
   @SceneEnter()
   async onStart(@Ctx() ctx: MessageContext & IStepContext<LecturerState>) {
     if (ctx.text?.toLocaleLowerCase() === 'отмена') {
       await ctx.send(MESSAGES['ru'].CANCEL_SEARCH);
       return await ctx.scene.leave({
-        canceled: true
+        canceled: true,
       });
     }
 
@@ -56,7 +56,7 @@ export class LecturerWizard {
       if (lecturers instanceof Error) {
         await message.editMessage({
           message: MESSAGES['ru'].ERROR_RETRY,
-          keyboard: searchingLecturerList([])
+          keyboard: searchingLecturerList([]),
         });
         return;
       }
@@ -88,24 +88,28 @@ export class LecturerWizard {
   }
 
   @AddStep(2)
-  async onLecturerSelect(@Ctx() ctx: MessageContext & IStepContext<LecturerState>) {
+  async onLecturerSelect(
+    @Ctx() ctx: MessageContext & IStepContext<LecturerState>,
+  ) {
     await ctx.setActivity();
 
     const lecturer_id = ctx.messagePayload?.lecturer_id;
 
-    const selected_lecturer = ctx.scene.state.lecturers.find((l) => String(l.id) === String(lecturer_id));
+    const selected_lecturer = ctx.scene.state.lecturers.find(
+      (l) => String(l.id) === String(lecturer_id),
+    );
 
     if (ctx.scene.state.cmid) {
       await this.vk.api.messages.edit({
         peer_id: ctx.peerId,
         cmid: ctx.scene.state.cmid,
         message: MESSAGES['ru'].LECTURER_SELECTED(selected_lecturer.label),
-        keyboard: requestLecturerSchedule(parseInt(lecturer_id), new Date()),
-      })
+        keyboard: requestLecturerSchedule(parseInt(lecturer_id)),
+      });
     } else {
       await ctx.send({
         message: MESSAGES['ru'].LECTURER_SELECTED(selected_lecturer.label),
-        keyboard: requestLecturerSchedule(parseInt(lecturer_id), new Date()),
+        keyboard: requestLecturerSchedule(parseInt(lecturer_id)),
       });
     }
 

@@ -4,7 +4,7 @@ import { DataEntity } from '../data/data.entity';
 
 @Injectable()
 export class FaqService {
-  constructor(private dataService: DataService) { }
+  constructor(private dataService: DataService) {}
 
   async getFaq(languages?: DataEntity['language'][]) {
     let faqItems = await this.dataService.getData('faq');

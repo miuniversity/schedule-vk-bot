@@ -253,13 +253,13 @@ export class NotificationsService {
   ) {
     const rejected: (
       | {
-        response: {
-          ok: boolean;
-          error_code: number;
-          description: string;
-        };
-        chat_id: string;
-      }
+          response: {
+            ok: boolean;
+            error_code: number;
+            description: string;
+          };
+          chat_id: string;
+        }
       | any
     )[] = [];
     const requestsPerCycle = options?.requestsPerCycle ?? this.requestsPerCycle;

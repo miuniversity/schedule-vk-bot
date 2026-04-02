@@ -1,22 +1,19 @@
 import { Keyboard, MessageContext } from 'vk-io';
-import { Ctx, Hears, Update, } from 'nestjs-vk';
+import { Ctx, Hears, Update } from 'nestjs-vk';
 
-import {
-  MESSAGES,
-  SELECT_GROUP_WIZARD,
-} from './app.constants';
+import { MESSAGES, SELECT_GROUP_WIZARD } from './app.constants';
 import { UsersService } from './users/users.service';
 
-const keyboard = Keyboard.builder().textButton({
-  label: MESSAGES['ru'].MENU,
-  color: Keyboard.PRIMARY_COLOR,
-}).row();
+const keyboard = Keyboard.builder()
+  .textButton({
+    label: MESSAGES['ru'].MENU,
+    color: Keyboard.PRIMARY_COLOR,
+  })
+  .row();
 
 @Update()
 export class AppUpdate {
-  constructor(
-    private readonly usersService: UsersService,
-  ) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Hears([/start/i, /начать/i])
   async onStart(@Ctx() ctx: MessageContext) {
@@ -35,14 +32,14 @@ export class AppUpdate {
       });
       await ctx.send({
         message: MESSAGES['ru'].ACTIVITY_RESTORATION,
-        keyboard
+        keyboard,
       });
       return;
     }
 
     await ctx.send({
       message: MESSAGES['ru'].ALREADY_REGISTERED,
-      keyboard
+      keyboard,
     });
   }
 
