@@ -1,4 +1,4 @@
-FROM oven/bun:1-slim
+FROM oven/bun:1-alpine
 WORKDIR /app
 RUN apk add --no-cache alpine-conf && \
     setup-timezone -z Europe/Moscow
