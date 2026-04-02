@@ -1,15 +1,20 @@
-import { Ctx, Hears, Update } from 'nestjs-vk';
-import { MessageContext } from 'vk-io';
+import { Ctx, Hears, InjectVkApi, Next, On, Update } from 'nestjs-vk';
+import { MessageContext, MessageEventContext, VK } from 'vk-io';
+import { NextFunction } from 'express';
 
 import { settingsController } from './settings.buttons';
 import { UsersService } from '../users/users.service';
 import { MESSAGES, SELECT_GROUP_WIZARD } from '../app.constants';
+import eventFilter, { EVENTS } from 'src/utils/eventFilter';
 
 @Update()
 export class SettingsUpdate {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(@InjectVkApi() readonly vk: VK, private readonly usersService: UsersService) { }
+
   @Hears([/настройки/i])
-  async onSettings(@Ctx() ctx: MessageContext) {
+  async onSettings(@Ctx() ctx: MessageContext, @Next() next: NextFunction) {
+    if (!!ctx.isOutbox) { return next(); }
+
     await ctx.setActivity();
 
     const user = await this.usersService.getInfo(ctx.peerId);
@@ -19,51 +24,59 @@ export class SettingsUpdate {
       return;
     }
 
-    await ctx.send(MESSAGES['ru'].SETTINGS, {
+    await ctx.send({
+      message: MESSAGES['ru'].SETTINGS,
       keyboard: settingsController({ user }),
     });
   }
 
-  @Hears(/сменить группу/i)
-  async changeGroup(@Ctx() ctx: MessageContext) {
+  @On('message_event', eventFilter)
+  async changeGroup(@Ctx() ctx: MessageEventContext, @Next() next: NextFunction) {
+    if (ctx.eventPayload.event !== EVENTS.SETTINGS) { return next(); }
+    if (ctx.eventPayload.action !== 'change-group') { return next(); }
+
     await ctx.scene.enter(SELECT_GROUP_WIZARD);
   }
 
-  @Hears(/подробная неделя/i)
-  async changeDetailWeek(@Ctx() ctx: MessageContext) {
-    await ctx.setActivity();
+  @On('message_event', eventFilter)
+  async changeDetailWeek(@Ctx() ctx: MessageEventContext, @Next() next: NextFunction) {
+    if (ctx.eventPayload.event !== EVENTS.SETTINGS) { return next(); }
+    if (ctx.eventPayload.action !== 'toggle-detail-week') { return next(); }
 
-    const flag = String(ctx.messagePayload?.state) === 'true';
+    const flag = String(ctx.eventPayload.state) === 'true';
     const updated_user = await this.usersService.editInfo(ctx.peerId, {
       detail_week: !flag,
     });
 
-    await ctx.send(
-      MESSAGES['ru'].DETAIL_WEEK_SWITCHED(updated_user.detail_week),
-      {
-        keyboard: settingsController({
-          user: updated_user,
-        }),
-      },
+    await this.vk.api.messages.edit({
+      peer_id: ctx.peerId,
+      cmid: ctx.conversationMessageId,
+      message: MESSAGES['ru'].DETAIL_WEEK_SWITCHED(updated_user.detail_week),
+      keyboard: settingsController({
+        user: updated_user,
+      }),
+    },
     );
   }
 
-  @Hears(/показывать корпус/i)
-  async changeHideBuildings(@Ctx() ctx: MessageContext) {
-    await ctx.setActivity();
+  @On('message_event', eventFilter)
+  async changeHideBuildings(@Ctx() ctx: MessageEventContext, @Next() next: NextFunction) {
+    if (ctx.eventPayload.event !== EVENTS.SETTINGS) { return next(); }
+    if (ctx.eventPayload.action !== 'toggle-hide-buildings') { return next(); }
 
-    const flag = String(ctx.messagePayload?.state) === 'true';
+    const flag = String(ctx.eventPayload.state) === 'true';
     const updated_user = await this.usersService.editInfo(ctx.peerId, {
       hide_buildings: !flag,
     });
 
-    await ctx.send(
-      MESSAGES['ru'].HIDE_BUILDINGS_SWITCHED(updated_user.hide_buildings),
-      {
-        keyboard: settingsController({
-          user: updated_user,
-        }),
-      },
+    await this.vk.api.messages.edit({
+      peer_id: ctx.peerId,
+      cmid: ctx.conversationMessageId,
+      message: MESSAGES['ru'].HIDE_BUILDINGS_SWITCHED(updated_user.hide_buildings),
+      keyboard: settingsController({
+        user: updated_user,
+      }),
+    },
     );
   }
 

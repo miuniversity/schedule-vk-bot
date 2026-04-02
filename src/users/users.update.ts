@@ -15,7 +15,6 @@ export class UsersUpdate {
       user
         ? `id: ${user.id}\n` +
         `uid: ${user.uid}\n` +
-        `username: ${user.username}\n` +
         `group: ${user.group_name}\n` +
         `language: ${user.language}\n` +
         `created: ${user.created_at.toLocaleString()}`

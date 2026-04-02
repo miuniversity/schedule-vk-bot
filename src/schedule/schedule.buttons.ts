@@ -1,53 +1,56 @@
-import { Markup } from 'telegraf';
 import { formatDate } from '../utils/formatDate';
 import { addDays, addWeeks, isThisWeek, isToday } from 'date-fns';
-import { Keyboard, KeyboardBuilder } from 'vk-io';
+import { EVENTS } from 'src/utils/eventFilter';
+import { Keyboard } from 'vk-io';
 
-export const emptyController = () =>
-  Markup.inlineKeyboard([Markup.button.callback('Меню', 'menu')]);
 
 export const dayController = (date: Date, hasError = false) => {
   const kbdBuilder = Keyboard.builder().inline();
 
   if (hasError) {
     kbdBuilder
-      .textButton({
+      .callbackButton({
         label: 'Повторить попытку',
         payload: {
-          day: formatDate(date),
+          event: EVENTS.SCHEDULE_DAY,
+          date: formatDate(date),
         }
       }).row()
   }
 
   kbdBuilder
-    .textButton({
+    .callbackButton({
       label: 'Пред.',
       payload: {
-        day: formatDate(addDays(date, -1)),
+        event: EVENTS.SCHEDULE_DAY,
+        date: formatDate(addDays(date, -1)),
       },
       color: Keyboard.PRIMARY_COLOR,
     })
-    .textButton({
+    .callbackButton({
       label: 'След.',
       payload: {
-        day: formatDate(addDays(date, 1)),
+        event: EVENTS.SCHEDULE_DAY,
+        date: formatDate(addDays(date, 1)),
       },
       color: Keyboard.PRIMARY_COLOR,
     })
     .row()
-    .textButton({
+    .callbackButton({
       label: 'Неделя',
       payload: {
-        week: formatDate(date),
+        event: EVENTS.SCHEDULE_WEEK,
+        date: formatDate(date),
       }
     })
 
   if (!isToday(date)) {
     kbdBuilder
-      .textButton({
+      .callbackButton({
         label: 'Сегодня',
         payload: {
-          day: 'current',
+          event: EVENTS.SCHEDULE_DAY,
+          date: 'current',
         }
       })
   }
@@ -55,7 +58,7 @@ export const dayController = (date: Date, hasError = false) => {
   kbdBuilder.textButton({
     label: 'Меню',
     payload: {
-      menu: 'menu',
+      event: EVENTS.MENU,
     }
   })
     .row()
@@ -71,9 +74,12 @@ export const weekController = (
 
   if (options.days?.length) {
     options?.days?.forEach((day, index) => {
-      kbgBuilder.textButton({
+      kbgBuilder.callbackButton({
         label: day.name,
-        payload: { day: formatDate(day.date) },
+        payload: {
+          event: EVENTS.SCHEDULE_DAY,
+          date: formatDate(day.date)
+        },
         color: Keyboard.PRIMARY_COLOR,
       })
 
@@ -87,41 +93,46 @@ export const weekController = (
 
   if (options.hasError) {
     kbgBuilder
-      .textButton({
+      .callbackButton({
         label: 'Повторить попытку',
         payload: {
-          week: formatDate(date),
+          event: EVENTS.SCHEDULE_WEEK,
+          date: formatDate(date),
         }
       }).row()
   }
 
   kbgBuilder
-    .textButton({
+    .callbackButton({
       label: 'Пред.',
       payload: {
-        week: formatDate(addWeeks(date, -1)),
+        event: EVENTS.SCHEDULE_WEEK,
+        date: formatDate(addWeeks(date, -1)),
       }
     })
-    .textButton({
+    .callbackButton({
       label: 'След.',
       payload: {
-        week: formatDate(addWeeks(date, 1)),
+        event: EVENTS.SCHEDULE_WEEK,
+        date: formatDate(addWeeks(date, 1)),
       }
     })
     .row()
 
   if (!isThisWeek(date, { weekStartsOn: 1 })) {
-    kbgBuilder.textButton({
+    kbgBuilder.callbackButton({
       label: 'Текущая',
       payload: {
-        week: 'current',
+        event: EVENTS.SCHEDULE_WEEK,
+        date: 'current',
       }
     })
   } else {
-    kbgBuilder.textButton({
+    kbgBuilder.callbackButton({
       label: 'Сегодня',
       payload: {
-        day: 'current',
+        event: EVENTS.SCHEDULE_DAY,
+        date: 'current',
       }
     })
   }
@@ -130,7 +141,7 @@ export const weekController = (
     .textButton({
       label: 'Меню',
       payload: {
-        menu: 'menu',
+        event: EVENTS.MENU,
       }
     })
     .row()

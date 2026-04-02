@@ -19,15 +19,6 @@ export class UserEntity {
   @Column({ unique: true })
   uid: string;
 
-  @Column({ nullable: true })
-  first_name?: string;
-
-  @Column({ nullable: true })
-  last_name?: string;
-
-  @Column({ nullable: true })
-  username?: string;
-
   @Column()
   group_id: number;
 

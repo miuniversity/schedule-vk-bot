@@ -1,23 +1,29 @@
+import { EVENTS } from "src/utils/eventFilter";
 import { Keyboard } from "vk-io";
 
 export const mainMenu = Keyboard.builder().inline()
-  .textButton({
+  .callbackButton({
     label: 'На день',
     payload: {
-      day: 'current',
+      event: EVENTS.SCHEDULE_DAY,
+      date: 'current',
     },
     color: Keyboard.PRIMARY_COLOR,
   })
-  .textButton({
+  .callbackButton({
     label: 'На неделю',
     payload: {
-      week: 'current',
+      event: EVENTS.SCHEDULE_WEEK,
+      date: 'current',
     },
     color: Keyboard.PRIMARY_COLOR,
   })
   .row()
-  .textButton({
+  .callbackButton({
     label: 'Преподаватель',
+    payload: {
+      event: EVENTS.SELECT_LECTURER,
+    },
     color: Keyboard.SECONDARY_COLOR,
   })
   .row()

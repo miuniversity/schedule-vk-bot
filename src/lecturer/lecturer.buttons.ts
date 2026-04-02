@@ -1,5 +1,6 @@
 import { formatDate } from '../utils/formatDate';
 import { addWeeks, isThisWeek } from 'date-fns';
+import { EVENTS } from 'src/utils/eventFilter';
 import { Keyboard } from 'vk-io';
 
 export const searchingLecturerList = (lecturers: { label: string; id: number }[]) => {
@@ -10,6 +11,7 @@ export const searchingLecturerList = (lecturers: { label: string; id: number }[]
       .textButton({
         label: lecturer.label,
         payload: {
+          event: EVENTS.SELECT_LECTURER,
           lecturer_id: lecturer.id,
         },
         color: Keyboard.PRIMARY_COLOR,
@@ -20,6 +22,7 @@ export const searchingLecturerList = (lecturers: { label: string; id: number }[]
   kbdBuilder
     .textButton({
       label: 'Отмена',
+      payload: { event: EVENTS.CANCEL },
     })
     .row()
 
@@ -30,16 +33,22 @@ export const requestLecturerSchedule = (lecturer_id: number, date: Date) => {
   const kbdBuilder = Keyboard.builder().inline();
 
   kbdBuilder
-    .textButton({
+    .callbackButton({
       label: 'Получить расписание',
       payload: {
+        event: EVENTS.SCHEDULE_LECTURER,
         lecturer_id: lecturer_id,
         date: 'current',
+        noDelete: true,
       }
     })
     .row()
-    .textButton({
+    .callbackButton({
       label: 'Выбрать другого',
+      payload: {
+        event: EVENTS.SELECT_LECTURER,
+        noDelete: true,
+      }
     })
     .row()
 
@@ -55,9 +64,10 @@ export const lecturerController = (
 
   if (hasError) {
     kbdBuilder
-      .textButton({
+      .callbackButton({
         label: 'Повторить попытку',
         payload: {
+          event: EVENTS.SCHEDULE_LECTURER,
           lecturer_id: lecturer_id,
           date: formatDate(date),
         }
@@ -66,17 +76,19 @@ export const lecturerController = (
   }
 
   kbdBuilder
-    .textButton({
+    .callbackButton({
       label: 'Пред.',
       payload: {
+        event: EVENTS.SCHEDULE_LECTURER,
         lecturer_id: lecturer_id,
         date: formatDate(addWeeks(date, -1)),
       },
       color: Keyboard.PRIMARY_COLOR,
     })
-    .textButton({
+    .callbackButton({
       label: 'След.',
       payload: {
+        event: EVENTS.SCHEDULE_LECTURER,
         lecturer_id: lecturer_id,
         date: formatDate(addWeeks(date, 1)),
       },
@@ -86,9 +98,10 @@ export const lecturerController = (
 
   if (!isThisWeek(date, { weekStartsOn: 1 })) {
     kbdBuilder
-      .textButton({
+      .callbackButton({
         label: 'Текущая',
         payload: {
+          event: EVENTS.SCHEDULE_LECTURER,
           lecturer_id: lecturer_id,
           date: 'current',
         },
@@ -100,8 +113,7 @@ export const lecturerController = (
     .textButton({
       label: 'Меню',
       payload: {
-        lecturer_id: lecturer_id,
-        date: 'current',
+        event: EVENTS.MENU,
       },
     })
     .row()

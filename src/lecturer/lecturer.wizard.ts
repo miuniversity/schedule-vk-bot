@@ -1,9 +1,8 @@
-import { AddStep, Ctx, Scene, SceneEnter } from 'nestjs-vk';
-import { MessageContext } from 'vk-io';
+import { AddStep, Ctx, InjectVkApi, Scene, SceneEnter } from 'nestjs-vk';
+import { MessageContext, VK } from 'vk-io';
 import { IStepContext } from '@vk-io/scenes';
 
 import { MESSAGES, SELECT_LECTURER_WIZARD } from '../app.constants';
-import { editMessage } from '../utils/editMessage';
 import { ApiService } from '../api/api.service';
 import {
   lecturerController,
@@ -15,18 +14,20 @@ import { LecturerService } from './lecturer.service';
 type LecturerState = {
   lecturers: { label: string; id: number; description: string }[];
   status: 'idle' | 'search';
+  cmid?: number;
 }
 
 @Scene(SELECT_LECTURER_WIZARD)
 export class LecturerWizard {
   constructor(
+    @InjectVkApi() readonly vk: VK,
     private readonly lecturerService: LecturerService,
     private readonly apiService: ApiService,
   ) { }
 
   @SceneEnter()
   async onStart(@Ctx() ctx: MessageContext & IStepContext<LecturerState>) {
-    if (ctx.text.toLocaleLowerCase() === 'отмена') {
+    if (ctx.text?.toLocaleLowerCase() === 'отмена') {
       await ctx.send(MESSAGES['ru'].CANCEL_SEARCH);
       return await ctx.scene.leave({
         canceled: true
@@ -81,6 +82,7 @@ export class LecturerWizard {
         message: MESSAGES['ru'].SELECT_LECTURER,
         keyboard: searchingLecturerList(lecturers),
       });
+      ctx.scene.state.cmid = message.conversationMessageId;
       return await ctx.scene.step.next({ silent: true });
     }
   }
@@ -93,10 +95,19 @@ export class LecturerWizard {
 
     const selected_lecturer = ctx.scene.state.lecturers.find((l) => String(l.id) === String(lecturer_id));
 
-    await ctx.send({
-      message: MESSAGES['ru'].LECTURER_SELECTED(selected_lecturer.label),
-      keyboard: requestLecturerSchedule(parseInt(lecturer_id), new Date()),
-    });
+    if (ctx.scene.state.cmid) {
+      await this.vk.api.messages.edit({
+        peer_id: ctx.peerId,
+        cmid: ctx.scene.state.cmid,
+        message: MESSAGES['ru'].LECTURER_SELECTED(selected_lecturer.label),
+        keyboard: requestLecturerSchedule(parseInt(lecturer_id), new Date()),
+      })
+    } else {
+      await ctx.send({
+        message: MESSAGES['ru'].LECTURER_SELECTED(selected_lecturer.label),
+        keyboard: requestLecturerSchedule(parseInt(lecturer_id), new Date()),
+      });
+    }
 
     const lessons = await this.lecturerService.getLecturerSchedule(
       parseInt(lecturer_id),
