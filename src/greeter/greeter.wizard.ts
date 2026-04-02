@@ -2,7 +2,7 @@ import { MessageContext, MessageEventContext } from 'vk-io';
 import { AddStep, Ctx, Scene, SceneEnter } from 'nestjs-vk';
 import { IStepContext } from '@vk-io/scenes';
 
-import { searchingGroupList } from './greeter.buttons';
+import { searchingGroupList, simpleButtons } from './greeter.buttons';
 import { MESSAGES, SELECT_GROUP_WIZARD } from '../app.constants';
 import { SearchResponseData } from '../api/api.interface';
 import { ApiService } from '../api/api.service';
@@ -102,7 +102,10 @@ export class GreeterWizard {
         await this.usersService.register(payload);
       }
 
-      await ctx.send(MESSAGES['ru'].GROUP_SELECTED(selected_group.label));
+      await ctx.send({
+        message: MESSAGES['ru'].GROUP_SELECTED(selected_group.label),
+        keyboard: simpleButtons,
+      });
       return ctx.scene.leave();
     }
     return ctx.scene.step.go(0);

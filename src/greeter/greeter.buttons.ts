@@ -1,4 +1,14 @@
 import { Keyboard } from 'vk-io';
+import { EVENTS } from '../utils/eventFilter';
+
+export const simpleButtons = Keyboard.builder()
+  .inline()
+  .textButton({
+    label: 'Меню',
+    payload: {
+      event: EVENTS.MENU,
+    },
+  });
 
 export const searchingGroupList = (groups: { label: string; id: number }[]) => {
   const bulider = Keyboard.builder().inline();
